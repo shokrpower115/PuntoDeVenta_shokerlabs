@@ -1,0 +1,94 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Colores tomados directamente del logo (extraídos por pixel, no aproximados) -->
+    <Color x:Key="ColorAzulPrimario">#FF0066A8</Color>
+    <Color x:Key="ColorAzulOscuro">#FF004E80</Color>
+    <Color x:Key="ColorRojoPrimario">#FFE31836</Color>
+    <Color x:Key="ColorRojoOscuro">#FFB81229</Color>
+    <Color x:Key="ColorFondo">#FFF5F7FA</Color>
+    <Color x:Key="ColorTextoClaro">#FFFFFFFF</Color>
+    <Color x:Key="ColorTextoOscuro">#FF2C2C2C</Color>
+    <Color x:Key="ColorGrisClaro">#FFE0E0E0</Color>
+
+    <!-- Brushes: son los que realmente usas en Background/Foreground/etc. -->
+    <SolidColorBrush x:Key="BrushAzulPrimario" Color="{StaticResource ColorAzulPrimario}"/>
+    <SolidColorBrush x:Key="BrushAzulOscuro" Color="{StaticResource ColorAzulOscuro}"/>
+    <SolidColorBrush x:Key="BrushRojoPrimario" Color="{StaticResource ColorRojoPrimario}"/>
+    <SolidColorBrush x:Key="BrushRojoOscuro" Color="{StaticResource ColorRojoOscuro}"/>
+    <SolidColorBrush x:Key="BrushFondo" Color="{StaticResource ColorFondo}"/>
+    <SolidColorBrush x:Key="BrushTextoClaro" Color="{StaticResource ColorTextoClaro}"/>
+    <SolidColorBrush x:Key="BrushTextoOscuro" Color="{StaticResource ColorTextoOscuro}"/>
+    <SolidColorBrush x:Key="BrushGrisClaro" Color="{StaticResource ColorGrisClaro}"/>
+
+    <!-- Estilo base para botones: azul de fondo, texto blanco, hover más oscuro -->
+    <Style x:Key="BotonPrimario" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource BrushAzulPrimario}"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextoClaro}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource BrushAzulOscuro}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Estilo para botones del menú lateral: transparente sobre el fondo azul,
+         con un overlay sutil al pasar el mouse -->
+    <Style x:Key="BotonMenu" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextoClaro}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Padding" Value="12,0,0,0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource BrushAzulOscuro}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Estilo para el botón de acción principal (Cobrar, Iniciar sesión): rojo de marca -->
+    <Style x:Key="BotonAccento" TargetType="Button" BasedOn="{StaticResource BotonPrimario}">
+        <Setter Property="Background" Value="{StaticResource BrushRojoPrimario}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource BrushRojoOscuro}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>
