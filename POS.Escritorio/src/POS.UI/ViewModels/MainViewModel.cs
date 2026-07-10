@@ -17,6 +17,7 @@ namespace POS.UI.ViewModels
         public int SucursalActualId { get; }
         public string NombreUsuarioActual { get; }
         public string PuestoActual { get; }
+        public int UsuarioIdActual { get; }
 
         private ViewModelBase _pantallaActual = null!;
         public ViewModelBase PantallaActual
@@ -28,24 +29,28 @@ namespace POS.UI.ViewModels
         public RelayCommand IrAVentaCommand { get; }
         public RelayCommand IrAInventarioCommand { get; }
         public RelayCommand IrACorteCajaCommand { get; }
+        public RelayCommand IrAAdministradorCommand { get; }
+
+        private readonly IMetodoPagoService _metodoPagoService;
 
         public MainViewModel(IProductoService productoService, IVentaService ventaService,
-            ICorteCajaService corteCajaService, IImpresoraTicketService impresoraTicketService,
-            DatosNegocio datosNegocio, Usuario usuarioActual)
+     ICorteCajaService corteCajaService, IImpresoraTicketService impresoraTicketService,
+     IMetodoPagoService metodoPagoService, DatosNegocio datosNegocio, Usuario usuarioActual)
         {
             _productoService = productoService;
             _ventaService = ventaService;
             _corteCajaService = corteCajaService;
             _impresoraTicketService = impresoraTicketService;
+            _metodoPagoService = metodoPagoService;
             _datosNegocio = datosNegocio;
 
             SucursalActualId = usuarioActual.SucursalId;
             NombreUsuarioActual = usuarioActual.NombreCompleto;
-            PuestoActual = usuarioActual.Puesto;
+            UsuarioIdActual = usuarioActual.Id;
 
             IrAVentaCommand = new RelayCommand(() =>
                 PantallaActual = new VentaViewModel(_productoService, _ventaService, _impresoraTicketService,
-                    _datosNegocio, SucursalActualId, NombreUsuarioActual));
+                    _datosNegocio, SucursalActualId, NombreUsuarioActual, UsuarioIdActual, _metodoPagoService));
 
             IrAInventarioCommand = new RelayCommand(() =>
                 PantallaActual = new InventarioViewModel(_productoService, SucursalActualId));
@@ -53,9 +58,12 @@ namespace POS.UI.ViewModels
             IrACorteCajaCommand = new RelayCommand(() =>
                 PantallaActual = new CorteCajaViewModel(_corteCajaService, _ventaService, SucursalActualId));
 
+            IrAAdministradorCommand = new RelayCommand(() =>
+                PantallaActual = new AdministradorViewModel(_productoService));
+
             // Pantalla inicial
             PantallaActual = new VentaViewModel(_productoService, _ventaService, _impresoraTicketService,
-                _datosNegocio, SucursalActualId, NombreUsuarioActual);
+                _datosNegocio, SucursalActualId, NombreUsuarioActual, UsuarioIdActual, _metodoPagoService);
         }
     }
 }

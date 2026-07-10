@@ -14,13 +14,17 @@ namespace POS.UI.ViewModels
         private readonly IProductoService _productoService;
         private readonly IVentaService _ventaService;
         private readonly IImpresoraTicketService _impresoraTicketService;
+        private readonly IMetodoPagoService _metodoPagoService;
+
         private readonly DatosNegocio _datosNegocio;
         private readonly int _sucursalId;
         private readonly string _nombreCajero;
+        private readonly int _usuarioId;
 
         public ObservableCollection<Producto> ProductosDisponibles { get; } = new();
         public ObservableCollection<VentaDetalle> Carrito { get; } = new();
         public ObservableCollection<DisponibilidadProducto> DisponibilidadOtrasSucursales { get; } = new();
+        public ObservableCollection<MetodoPago> MetodosPago { get; } = new();
 
         private Producto? _productoSeleccionado;
         public Producto? ProductoSeleccionado
@@ -43,13 +47,20 @@ namespace POS.UI.ViewModels
             set => SetProperty(ref _mensaje, value);
         }
 
+        private MetodoPago? _metodoPagoSeleccionado;
+        public MetodoPago? MetodoPagoSeleccionado
+        {
+            get => _metodoPagoSeleccionado;
+            set => SetProperty(ref _metodoPagoSeleccionado, value);
+        }
+
         public RelayCommand AgregarAlCarritoCommand { get; }
         public RelayCommand ConsultarOtrasSucursalesCommand { get; }
         public RelayCommand CobrarCommand { get; }
 
         public VentaViewModel(IProductoService productoService, IVentaService ventaService,
             IImpresoraTicketService impresoraTicketService, DatosNegocio datosNegocio,
-            int sucursalId, string nombreCajero)
+            int sucursalId, string nombreCajero, int usuarioId, IMetodoPagoService metodoPagoService)
         {
             _productoService = productoService;
             _ventaService = ventaService;
@@ -57,12 +68,15 @@ namespace POS.UI.ViewModels
             _datosNegocio = datosNegocio;
             _sucursalId = sucursalId;
             _nombreCajero = nombreCajero;
+            _usuarioId = usuarioId;
+            _metodoPagoService = metodoPagoService;
 
             AgregarAlCarritoCommand = new RelayCommand(async () => await AgregarAlCarritoAsync());
             ConsultarOtrasSucursalesCommand = new RelayCommand(async () => await ConsultarOtrasSucursalesAsync());
             CobrarCommand = new RelayCommand(async () => await CobrarAsync());
 
             _ = CargarProductosAsync();
+            _ = CargarMetodosPagoAsync();
         }
 
         private async Task CargarProductosAsync()
@@ -110,9 +124,17 @@ namespace POS.UI.ViewModels
         {
             if (!Carrito.Any()) return;
 
+            if (MetodoPagoSeleccionado == null)
+            {
+                Mensaje = "Selecciona un método de pago.";
+                return;
+            }
+
             var venta = new Venta
             {
+                MetodoPagoId = 1, // TODO: temporal, hardcodeado a "Efectivo" hasta que exista el selector de método de pago
                 SucursalId = _sucursalId,
+                UsuarioId = _usuarioId,
                 Total = Total,
                 Detalles = Carrito.ToList()
             };
@@ -142,6 +164,14 @@ namespace POS.UI.ViewModels
             await CargarProductosAsync();
         }
 
+        private async Task CargarMetodosPagoAsync()
+        {
+            var metodos = await _metodoPagoService.ObtenerActivosAsync();
+            MetodosPago.Clear();
+            foreach (var m in metodos)
+                MetodosPago.Add(m);
 
+            MetodoPagoSeleccionado = MetodosPago.FirstOrDefault(); // Efectivo por defecto, al ser el primero
+        }
     }
 }

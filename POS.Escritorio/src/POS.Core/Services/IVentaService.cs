@@ -9,6 +9,6 @@ namespace POS.Core.Services
     {
         Task<Venta> RegistrarVentaAsync(Venta venta);
         Task<List<Venta>> ObtenerVentasDelTurnoAsync(int sucursalId, DateTime desde);
-        Task<decimal> ObtenerTotalVentasAsync(int sucursalId, DateTime desde, DateTime hasta);
+        Task<decimal> ObtenerTotalPorMetodoPagoAsync(int sucursalId, DateTime desde, DateTime hasta, string nombreMetodoPago);
     }
 }

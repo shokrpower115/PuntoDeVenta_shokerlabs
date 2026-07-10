@@ -1,0 +1,65 @@
+﻿<UserControl x:Class="POS.UI.Views.AdministradorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Columna izquierda: formulario de alta -->
+        <StackPanel Grid.Column="0" Margin="0,0,15,0">
+            <TextBlock Text="Nuevo producto" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+
+            <TextBlock Text="Nombre:" Margin="0,5,0,3"/>
+            <TextBox Text="{Binding NuevoNombre, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+
+            <TextBlock Text="Código de barras (opcional):" Margin="0,10,0,3"/>
+            <TextBox Text="{Binding NuevoCodigoBarras, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+
+            <TextBlock Text="Precio:" Margin="0,10,0,3"/>
+            <TextBox Text="{Binding NuevoPrecio, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+
+            <TextBlock Text="Stock inicial por sucursal:" FontWeight="Bold" Margin="0,15,0,5"/>
+
+            <TextBlock Text="Centro:" Margin="0,5,0,3"/>
+            <TextBox Text="{Binding NuevoStockCentro, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+
+            <TextBlock Text="Norte:" Margin="0,10,0,3"/>
+            <TextBox Text="{Binding NuevoStockNorte, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+
+            <TextBlock Text="Sur:" Margin="0,10,0,3"/>
+            <TextBox Text="{Binding NuevoStockSur, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+
+            <Button Content="Crear producto" Command="{Binding CrearProductoCommand}" Style="{StaticResource BotonAccento}"
+                    Height="40" Margin="0,15,0,0"/>
+
+            <TextBlock Text="{Binding Mensaje}" Foreground="DarkOrange" Margin="0,10,0,0" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <!-- Columna derecha: catálogo completo -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Catálogo completo" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+
+            <DataGrid Grid.Row="1"
+                      ItemsSource="{Binding Productos}"
+                      SelectedItem="{Binding ProductoSeleccionado}"
+                      AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
+                    <DataGridTextColumn Header="Código" Binding="{Binding CodigoBarras}" Width="120"/>
+                    <DataGridTextColumn Header="Precio" Binding="{Binding Precio, StringFormat=C}" Width="80"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Button Grid.Row="2" Content="Eliminar producto seleccionado" Command="{Binding EliminarProductoCommand}"
+                    Style="{StaticResource BotonAccento}" Height="40" Margin="0,10,0,0" HorizontalAlignment="Left" Padding="15,0"/>
+        </Grid>
+    </Grid>
+</UserControl>

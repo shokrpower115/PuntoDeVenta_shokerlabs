@@ -39,6 +39,22 @@ namespace POS.UI.ViewModels
             set => SetProperty(ref _totalVentasTurno, value);
         }
 
+        private decimal _totalEfectivo;
+        public decimal TotalEfectivo
+        {
+            get => _totalEfectivo;
+            private set => SetProperty(ref _totalEfectivo, value);
+        }
+
+        private decimal _totalTarjeta;
+        public decimal TotalTarjeta
+        {
+            get => _totalTarjeta;
+            private set => SetProperty(ref _totalTarjeta, value);
+        }
+
+        public decimal EfectivoEsperado => (TurnoActual?.EfectivoInicial ?? 0) + TotalEfectivo;
+
         public RelayCommand AbrirTurnoCommand { get; }
         public RelayCommand CerrarTurnoCommand { get; }
 
@@ -70,8 +86,16 @@ namespace POS.UI.ViewModels
         private async Task ActualizarTotalVentasAsync()
         {
             if (TurnoActual == null) return;
-            TotalVentasTurno = await _ventaService.ObtenerTotalVentasAsync(
-                _sucursalId, TurnoActual.FechaApertura, DateTime.Now);
+
+            TotalEfectivo = await _ventaService.ObtenerTotalPorMetodoPagoAsync(
+                _sucursalId, TurnoActual.FechaApertura, DateTime.Now, "Efectivo");
+
+            TotalTarjeta = await _ventaService.ObtenerTotalPorMetodoPagoAsync(
+                _sucursalId, TurnoActual.FechaApertura, DateTime.Now, "Tarjeta de crédito")
+                + await _ventaService.ObtenerTotalPorMetodoPagoAsync(
+                _sucursalId, TurnoActual.FechaApertura, DateTime.Now, "Tarjeta de débito");
+
+            TotalVentasTurno = TotalEfectivo + TotalTarjeta; // Solo informativo, ya no se usa para la diferencia
         }
 
         private async Task CerrarTurnoAsync()

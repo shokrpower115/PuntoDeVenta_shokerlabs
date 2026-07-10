@@ -81,6 +81,13 @@
                 </DataGrid.Columns>
             </DataGrid>
 
+            <TextBlock Grid.Row="2" Text="Método de pago:" Margin="0,10,0,3"/>
+            <ComboBox Grid.Row="2" Margin="0,30,0,0"
+          ItemsSource="{Binding MetodosPago}"
+          SelectedItem="{Binding MetodoPagoSeleccionado}"
+          DisplayMemberPath="Nombre"
+          Padding="5"/>
+
             <TextBlock Grid.Row="2" Text="{Binding Total, StringFormat='Total: {0:C}'}"
                        FontSize="22" FontWeight="Bold" Margin="0,15,0,15" HorizontalAlignment="Right"/>
 

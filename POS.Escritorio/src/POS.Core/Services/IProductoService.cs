@@ -12,5 +12,12 @@ namespace POS.Core.Services
         Task<Producto?> BuscarPorCodigoAsync(string codigoBarras, int sucursalId);
         Task DescontarStockAsync(int productoId, int cantidad, int sucursalId);
         Task<List<DisponibilidadProducto>> ConsultarEnOtrasSucursalesAsync(int productoId);
+
+        // Nuevos, para el Administrador:
+        Task<List<Producto>> ObtenerCatalogoCompletoAsync();
+        Task<Producto> CrearAsync(Producto producto, Dictionary<int, int> stockInicialPorSucursal);
+        Task ActualizarAsync(Producto producto);
+        Task EliminarAsync(int productoId);
+        Task ActualizarStockAsync(int productoId, int sucursalId, int nuevoStock);
     }
 }

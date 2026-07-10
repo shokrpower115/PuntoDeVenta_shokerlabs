@@ -2,6 +2,7 @@ using POS.Core.Models;
 using POS.Core.Services;
 using POS.Data.Impresion;
 using POS.Data.Mock;
+using POS.Data.Sqlite;
 using POS.UI.ViewModels;
 using System.Windows;
 
@@ -14,11 +15,12 @@ namespace POS.UI
             base.OnStartup(e);
 
             // === ÚNICO LUGAR QUE CAMBIARÁ cuando conectes la API real ===
-            IProductoService productoService = new ProductoServiceMock();
-            IVentaService ventaService = new VentaServiceMock();
-            ICorteCajaService corteCajaService = new CorteCajaServiceMock();
+            IProductoService productoService = new ProductoServiceSqlite();
+            IVentaService ventaService = new VentaServiceSqlite();
+            ICorteCajaService corteCajaService = new CorteCajaServiceSqlite();
             IAuthService authService = new AuthServiceMock();
             IImpresoraTicketService impresoraTicketService = new ImpresoraTicketPdfService();
+            IMetodoPagoService metodoPagoService = new MetodoPagoServiceSqlite();
 
             var datosNegocio = new DatosNegocio
             {
@@ -48,8 +50,8 @@ namespace POS.UI
             // 3) Login exitoso: ahora sí armamos la ventana principal,
             //    pasándole el usuario que acaba de autenticarse.
             var mainViewModel = new MainViewModel(
-                 productoService, ventaService, corteCajaService,
-                 impresoraTicketService, datosNegocio, loginViewModel.UsuarioAutenticado);
+     productoService, ventaService, corteCajaService,
+     impresoraTicketService, metodoPagoService, datosNegocio, loginViewModel.UsuarioAutenticado);
 
             var mainWindow = new MainWindow(mainViewModel);
             this.ShutdownMode = ShutdownMode.OnMainWindowClose;
