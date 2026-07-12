@@ -16,13 +16,13 @@ using System.Windows.Shapes;
 namespace POS.UI.Views
 {
     /// <summary>
-    /// Lógica de interacción para UserControl1.xaml
+    /// Lógica de interacción para AdministradorMenuView.xaml
     /// </summary>
-    public partial class UserControl1 : UserControl
+    public partial class AdministradorMenuView : UserControl
     {
-        public UserControl1()
+        public AdministradorMenuView()
         {
-            //InitializeComponent();
+            InitializeComponent();
         }
     }
 }

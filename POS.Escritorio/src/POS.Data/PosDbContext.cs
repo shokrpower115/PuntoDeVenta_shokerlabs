@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using POS.Core.Models;
+using POS.Core.Seguridad;
 
 namespace POS.Data
 {
@@ -40,6 +41,45 @@ namespace POS.Data
                 new MetodoPago { Id = 2, Nombre = "Tarjeta de crédito", Activo = true },
                 new MetodoPago { Id = 3, Nombre = "Tarjeta de débito", Activo = true },
                 new MetodoPago { Id = 4, Nombre = "Transferencia", Activo = true }
+            );
+
+            modelBuilder.Entity<Sucursal>().HasData(
+                new Sucursal { Id = 1, Nombre = "Sucursal Centro" },
+                new Sucursal { Id = 2, Nombre = "Sucursal Norte" },
+                new Sucursal { Id = 3, Nombre = "Sucursal Sur" }
+            );
+
+            modelBuilder.Entity<Usuario>().HasData(
+                 new Usuario
+                 {
+                     Id = 1,
+                     NombreUsuario = "centro",
+                     PasswordHash = HashPassword.Generar("1234"),
+                     NombreCompleto = "Moisés",
+                     Puesto = "Cajero",
+                     Rol = RolUsuario.Cajero,
+                     SucursalId = 1
+                 },
+                 new Usuario
+                 {
+                     Id = 2,
+                     NombreUsuario = "norte",
+                     PasswordHash = HashPassword.Generar("1234"),
+                     NombreCompleto = "Moisés",
+                     Puesto = "Cajero",
+                     Rol = RolUsuario.Cajero,
+                     SucursalId = 2
+                 },
+                 new Usuario
+                 {
+                     Id = 3,
+                     NombreUsuario = "sur",
+                     PasswordHash = HashPassword.Generar("1234"),
+                     NombreCompleto = "Moisés",
+                     Puesto = "Cajero",
+                     Rol = RolUsuario.Cajero,
+                     SucursalId = 3
+                 }
             );
         }
     }

@@ -23,6 +23,15 @@
             <DataTemplate DataType="{x:Type vm:AdministradorViewModel}">
                 <views:AdministradorView/>
             </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:AdministradorMenuViewModel}">
+                <views:AdministradorMenuView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ProductosAdminViewModel}">
+                <views:ProductosAdminView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:UsuariosAdminViewModel}">
+                <views:UsuariosAdminView/>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

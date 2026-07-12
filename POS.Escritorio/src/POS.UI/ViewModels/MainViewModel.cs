@@ -12,6 +12,7 @@ namespace POS.UI.ViewModels
         private readonly ICorteCajaService _corteCajaService;
         private readonly IImpresoraTicketService _impresoraTicketService;
         private readonly DatosNegocio _datosNegocio;
+        private readonly IAuthService _authService;
 
         // Ahora viene del login, ya no está fijo.
         public int SucursalActualId { get; }
@@ -34,8 +35,9 @@ namespace POS.UI.ViewModels
         private readonly IMetodoPagoService _metodoPagoService;
 
         public MainViewModel(IProductoService productoService, IVentaService ventaService,
-     ICorteCajaService corteCajaService, IImpresoraTicketService impresoraTicketService,
-     IMetodoPagoService metodoPagoService, DatosNegocio datosNegocio, Usuario usuarioActual)
+              ICorteCajaService corteCajaService, IImpresoraTicketService impresoraTicketService,
+              IMetodoPagoService metodoPagoService, IAuthService authService,
+              DatosNegocio datosNegocio, Usuario usuarioActual)
         {
             _productoService = productoService;
             _ventaService = ventaService;
@@ -43,6 +45,7 @@ namespace POS.UI.ViewModels
             _impresoraTicketService = impresoraTicketService;
             _metodoPagoService = metodoPagoService;
             _datosNegocio = datosNegocio;
+            _authService = authService;
 
             SucursalActualId = usuarioActual.SucursalId;
             NombreUsuarioActual = usuarioActual.NombreCompleto;
@@ -59,7 +62,7 @@ namespace POS.UI.ViewModels
                 PantallaActual = new CorteCajaViewModel(_corteCajaService, _ventaService, SucursalActualId));
 
             IrAAdministradorCommand = new RelayCommand(() =>
-                PantallaActual = new AdministradorViewModel(_productoService));
+                PantallaActual = new AdministradorViewModel(_productoService, _authService));
 
             // Pantalla inicial
             PantallaActual = new VentaViewModel(_productoService, _ventaService, _impresoraTicketService,

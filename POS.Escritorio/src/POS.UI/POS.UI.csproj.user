@@ -2,7 +2,16 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <ItemGroup>
+    <Compile Update="Views\AdministradorMenuView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\ProductosAdminView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\AdministradorView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\UsuariosAdminView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

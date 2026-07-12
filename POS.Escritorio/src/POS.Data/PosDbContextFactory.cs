@@ -11,12 +11,7 @@ namespace POS.Data
     {
         public PosDbContext CreateDbContext(string[] args)
         {
-            var carpeta = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "PuntoDeVenta");
-            Directory.CreateDirectory(carpeta);
-            var ruta = Path.Combine(carpeta, "pos.db");
-
-            return new PosDbContext(ruta);
+            return new PosDbContext(RutaBaseDatos.Obtener());
         }
     }
 }

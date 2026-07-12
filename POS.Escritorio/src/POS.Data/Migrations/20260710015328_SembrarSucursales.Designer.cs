@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using POS.Data;
 
@@ -10,9 +11,11 @@ using POS.Data;
 namespace POS.Data.Migrations
 {
     [DbContext(typeof(PosDbContext))]
-    partial class PosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260710015328_SembrarSucursales")]
+    partial class SembrarSucursales
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
@@ -184,20 +187,17 @@ namespace POS.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("NombreUsuario")
+                    b.Property<string>("NombreSucursal")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PasswordHash")
+                    b.Property<string>("NombreUsuario")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Puesto")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Rol")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("SucursalId")
                         .HasColumnType("INTEGER");
@@ -207,38 +207,6 @@ namespace POS.Data.Migrations
                     b.HasIndex("SucursalId");
 
                     b.ToTable("Usuarios");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            NombreCompleto = "Moisés",
-                            NombreUsuario = "centro",
-                            PasswordHash = "Y3lzhbqcgxasyFhImX0QMg==.qWue49ZJOCA+vahhdYktFJZ/kUcGEtpmx9+qN49G+wk=",
-                            Puesto = "Cajero",
-                            Rol = 0,
-                            SucursalId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            NombreCompleto = "Moisés",
-                            NombreUsuario = "norte",
-                            PasswordHash = "MywnH8vWDoByu1Xa+mk0KA==.nqDOnj9H5a0dSSrTKGZh+Rlqo3QhCPruw6WrKxsAwSc=",
-                            Puesto = "Cajero",
-                            Rol = 0,
-                            SucursalId = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            NombreCompleto = "Moisés",
-                            NombreUsuario = "sur",
-                            PasswordHash = "v2DbgCZ+Enxem90DjDPA1A==.eotfZxOy4H5PASUNxaBwMGPZ/Pnu5SJERtvW222GMIY=",
-                            Puesto = "Cajero",
-                            Rol = 0,
-                            SucursalId = 3
-                        });
                 });
 
             modelBuilder.Entity("POS.Core.Models.Venta", b =>

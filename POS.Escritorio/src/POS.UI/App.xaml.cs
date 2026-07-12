@@ -1,7 +1,6 @@
 using POS.Core.Models;
 using POS.Core.Services;
 using POS.Data.Impresion;
-using POS.Data.Mock;
 using POS.Data.Sqlite;
 using POS.UI.ViewModels;
 using System.Windows;
@@ -18,7 +17,7 @@ namespace POS.UI
             IProductoService productoService = new ProductoServiceSqlite();
             IVentaService ventaService = new VentaServiceSqlite();
             ICorteCajaService corteCajaService = new CorteCajaServiceSqlite();
-            IAuthService authService = new AuthServiceMock();
+            IAuthService authService = new AuthServiceSqlite();
             IImpresoraTicketService impresoraTicketService = new ImpresoraTicketPdfService();
             IMetodoPagoService metodoPagoService = new MetodoPagoServiceSqlite();
 
@@ -50,8 +49,9 @@ namespace POS.UI
             // 3) Login exitoso: ahora sí armamos la ventana principal,
             //    pasándole el usuario que acaba de autenticarse.
             var mainViewModel = new MainViewModel(
-     productoService, ventaService, corteCajaService,
-     impresoraTicketService, metodoPagoService, datosNegocio, loginViewModel.UsuarioAutenticado);
+    productoService, ventaService, corteCajaService,
+    impresoraTicketService, metodoPagoService, authService,
+    datosNegocio, loginViewModel.UsuarioAutenticado);
 
             var mainWindow = new MainWindow(mainViewModel);
             this.ShutdownMode = ShutdownMode.OnMainWindowClose;
@@ -67,21 +67,6 @@ namespace POS.UI
                 SitioWeb = "www.abarrotespuntodeventa.com"
             };
 
-            var ticketPrueba = new TicketVenta
-            {
-                Folio = 1,
-                Fecha = DateTime.Now,
-                NombreCajero = "MOISES BARRAA",
-                Total = 10,
-                PagoCon = 10,
-                Detalles = new()
-                {
-                    new VentaDetalle { NombreProducto = "ROSA", Cantidad = 1, PrecioUnitario = 10 }
-                }
-            };
-
-            IImpresoraTicketService impresora = new ImpresoraTicketPdfService();
-            _ = impresora.ImprimirAsync(ticketPrueba, negocioPrueba);
         }
     }
 }
