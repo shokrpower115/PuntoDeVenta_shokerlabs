@@ -14,6 +14,8 @@ namespace POS.Data
         public DbSet<VentaDetalle> VentaDetalles => Set<VentaDetalle>();
         public DbSet<CorteDeCaja> CortesCaja => Set<CorteDeCaja>();
         public DbSet<MetodoPago> MetodosPago => Set<MetodoPago>();
+        public DbSet<CategoriaMovimientoCaja> CategoriasMovimientoCaja => Set<CategoriaMovimientoCaja>();
+        public DbSet<MovimientoCaja> MovimientosCaja => Set<MovimientoCaja>();
 
         private readonly string _rutaBaseDatos;
 
@@ -80,6 +82,14 @@ namespace POS.Data
                      Rol = RolUsuario.Cajero,
                      SucursalId = 3
                  }
+            );
+
+            modelBuilder.Entity<CategoriaMovimientoCaja>().HasData(
+                new CategoriaMovimientoCaja { Id = 1, Nombre = "Fondo adicional / Cambio solicitado", Tipo = TipoMovimientoCaja.Entrada, Activo = true },
+                new CategoriaMovimientoCaja { Id = 2, Nombre = "Otro", Tipo = TipoMovimientoCaja.Entrada, Activo = true },
+                new CategoriaMovimientoCaja { Id = 3, Nombre = "Retiro por seguridad", Tipo = TipoMovimientoCaja.Retiro, Activo = true },
+                new CategoriaMovimientoCaja { Id = 4, Nombre = "Depósito bancario", Tipo = TipoMovimientoCaja.Retiro, Activo = true },
+                new CategoriaMovimientoCaja { Id = 5, Nombre = "Otro", Tipo = TipoMovimientoCaja.Retiro, Activo = true }
             );
         }
     }

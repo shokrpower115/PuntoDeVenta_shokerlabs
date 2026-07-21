@@ -59,7 +59,7 @@ namespace POS.UI.ViewModels
                 PantallaActual = new InventarioViewModel(_productoService, SucursalActualId));
 
             IrACorteCajaCommand = new RelayCommand(() =>
-                PantallaActual = new CorteCajaViewModel(_corteCajaService, _ventaService, SucursalActualId));
+                PantallaActual = new CorteCajaViewModel(_corteCajaService, _ventaService, SucursalActualId, UsuarioIdActual));
 
             IrAAdministradorCommand = new RelayCommand(() =>
                 PantallaActual = new AdministradorViewModel(_productoService, _authService));

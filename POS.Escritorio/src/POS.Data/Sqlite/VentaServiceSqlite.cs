@@ -45,12 +45,14 @@ namespace POS.Data.Sqlite
         {
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
-            return await db.Ventas
+            var ventas = await db.Ventas
                 .Include(v => v.MetodoPago)
                 .Where(v => v.SucursalId == sucursalId
                          && v.Fecha >= desde && v.Fecha <= hasta
                          && v.MetodoPago!.Nombre == nombreMetodoPago)
-                .SumAsync(v => v.Total);
+                .ToListAsync();
+
+            return ventas.Sum(v => v.Total);
         }
     }
 }

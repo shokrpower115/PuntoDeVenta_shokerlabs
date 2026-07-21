@@ -23,11 +23,11 @@ namespace POS.UI
 
             var datosNegocio = new DatosNegocio
             {
-                Nombre = "MILYLAA",
+                Nombre = "MONTESORIO",
                 Direccion = "DIRECCION 123 COL. COLONIA",
                 Telefono = "(555) 123 4567",
                 Rfc = "RFC0031282AB1",
-                SitioWeb = "www.abarrotespuntodeventa.com"
+                SitioWeb = "www.ColegioMontesori.com"
             };
 
             // 1) Mostramos el login PRIMERO, sin abrir todavía la ventana principal.
@@ -49,23 +49,13 @@ namespace POS.UI
             // 3) Login exitoso: ahora sí armamos la ventana principal,
             //    pasándole el usuario que acaba de autenticarse.
             var mainViewModel = new MainViewModel(
-    productoService, ventaService, corteCajaService,
-    impresoraTicketService, metodoPagoService, authService,
-    datosNegocio, loginViewModel.UsuarioAutenticado);
+            productoService, ventaService, corteCajaService,
+            impresoraTicketService, metodoPagoService, authService,
+            datosNegocio, loginViewModel.UsuarioAutenticado);
 
             var mainWindow = new MainWindow(mainViewModel);
             this.ShutdownMode = ShutdownMode.OnMainWindowClose;
             mainWindow.Show();
-
-
-            var negocioPrueba = new DatosNegocio
-            {
-                Nombre = "MILYLAA",
-                Direccion = "DIRECCION 123 COL. COLONIA",
-                Telefono = "(555) 123 4567",
-                Rfc = "RFC0031282AB1",
-                SitioWeb = "www.abarrotespuntodeventa.com"
-            };
 
         }
     }

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace POS.Core.Models
 {
@@ -16,8 +18,23 @@ namespace POS.Core.Models
         public DateTime? FechaCierre { get; set; }
         public decimal EfectivoInicial { get; set; }
         public decimal EfectivoFinal { get; set; }
-        public decimal TotalVentas { get; set; }
-        public decimal Diferencia => EfectivoFinal - (EfectivoInicial + TotalVentas);
+
+        public decimal TotalVentasEfectivo { get; set; }
+        public decimal TotalVentasTarjeta { get; set; }
+
+        public List<MovimientoCaja> Movimientos { get; set; } = new();
+
+        public decimal TotalEntradas => Movimientos
+            .Where(m => m.Categoria != null && m.Categoria.Tipo == TipoMovimientoCaja.Entrada)
+            .Sum(m => m.Monto);
+
+        public decimal TotalRetiros => Movimientos
+            .Where(m => m.Categoria != null && m.Categoria.Tipo == TipoMovimientoCaja.Retiro)
+            .Sum(m => m.Monto);
+
+        public decimal EfectivoEsperado => EfectivoInicial + TotalVentasEfectivo + TotalEntradas - TotalRetiros;
+        public decimal Diferencia => EfectivoFinal - EfectivoEsperado;
+
         public bool Cerrado { get; set; }
     }
 }

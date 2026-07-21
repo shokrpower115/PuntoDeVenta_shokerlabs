@@ -12,6 +12,24 @@
         <TextBlock Text="{Binding TotalVentasTurno, StringFormat='Total vendido en el turno: {0:C}'}"
                    FontWeight="Bold" Margin="0,0,0,20"/>
 
+        <TextBlock Text="Registrar entrada de efectivo:" FontWeight="Bold" Margin="0,20,0,5"/>
+        <ComboBox ItemsSource="{Binding CategoriasEntrada}" SelectedItem="{Binding CategoriaEntradaSeleccionada}"
+          DisplayMemberPath="Nombre" Padding="5" Margin="0,0,0,5"/>
+        <TextBox Text="{Binding DescripcionOtroEntrada, UpdateSourceTrigger=PropertyChanged}"
+         ToolTip="Solo si elegiste 'Otro'" Padding="5" Margin="0,0,0,5"/>
+        <TextBox Text="{Binding MontoEntrada, UpdateSourceTrigger=PropertyChanged}" Padding="5" Margin="0,0,0,5"/>
+        <Button Content="Registrar entrada" Command="{Binding RegistrarEntradaCommand}" Style="{StaticResource BotonPrimario}" Padding="10,5"/>
+
+        <TextBlock Text="Registrar retiro de efectivo:" FontWeight="Bold" Margin="0,20,0,5"/>
+        <ComboBox ItemsSource="{Binding CategoriasRetiro}" SelectedItem="{Binding CategoriaRetiroSeleccionada}"
+          DisplayMemberPath="Nombre" Padding="5" Margin="0,0,0,5"/>
+        <TextBox Text="{Binding DescripcionOtroRetiro, UpdateSourceTrigger=PropertyChanged}"
+         ToolTip="Solo si elegiste 'Otro'" Padding="5" Margin="0,0,0,5"/>
+        <TextBox Text="{Binding MontoRetiro, UpdateSourceTrigger=PropertyChanged}" Padding="5" Margin="0,0,0,5"/>
+        <Button Content="Registrar retiro" Command="{Binding RegistrarRetiroCommand}" Style="{StaticResource BotonAccento}" Padding="10,5"/>
+
+        <TextBlock Text="{Binding TurnoActual.EfectivoEsperado, StringFormat='Efectivo esperado: {0:C}'}" FontWeight="Bold" Margin="0,20,0,5"/>
+
         <TextBlock Text="Efectivo final (conteo físico):" Margin="0,0,0,5"/>
         <TextBox Text="{Binding EfectivoFinal}" Margin="0,0,0,10" Padding="5"/>
         <Button Content="Cerrar turno" Command="{Binding CerrarTurnoCommand}" Style="{StaticResource BotonAccento}"
