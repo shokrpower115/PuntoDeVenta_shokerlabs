@@ -3,9 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using POS.Core.Models;
 using POS.Core.Services;
-using POS.Core.Models;
-using POS.Core.Services;
-
 
 namespace POS.UI.ViewModels
 {
@@ -15,6 +12,7 @@ namespace POS.UI.ViewModels
         private readonly IVentaService _ventaService;
         private readonly IImpresoraTicketService _impresoraTicketService;
         private readonly IMetodoPagoService _metodoPagoService;
+        private readonly ICorteCajaService _corteCajaService;
 
         private readonly DatosNegocio _datosNegocio;
         private readonly int _sucursalId;
@@ -57,10 +55,16 @@ namespace POS.UI.ViewModels
         public RelayCommand AgregarAlCarritoCommand { get; }
         public RelayCommand ConsultarOtrasSucursalesCommand { get; }
         public RelayCommand CobrarCommand { get; }
+        public RelayCommand AbrirCorteCajaCommand { get; }
+        public RelayCommand AbrirRetiroEfectivoCommand { get; }
+
+        // Definir umbral
+        private const decimal UMBRAL_ACUMULACION_EFECTIVO = 4000m;
 
         public VentaViewModel(IProductoService productoService, IVentaService ventaService,
             IImpresoraTicketService impresoraTicketService, DatosNegocio datosNegocio,
-            int sucursalId, string nombreCajero, int usuarioId, IMetodoPagoService metodoPagoService)
+            int sucursalId, string nombreCajero, int usuarioId, IMetodoPagoService metodoPagoService,
+            ICorteCajaService corteCajaService)
         {
             _productoService = productoService;
             _ventaService = ventaService;
@@ -70,10 +74,13 @@ namespace POS.UI.ViewModels
             _nombreCajero = nombreCajero;
             _usuarioId = usuarioId;
             _metodoPagoService = metodoPagoService;
+            _corteCajaService = corteCajaService;
 
             AgregarAlCarritoCommand = new RelayCommand(async () => await AgregarAlCarritoAsync());
             ConsultarOtrasSucursalesCommand = new RelayCommand(async () => await ConsultarOtrasSucursalesAsync());
             CobrarCommand = new RelayCommand(async () => await CobrarAsync());
+            AbrirCorteCajaCommand = new RelayCommand(() => AbrirCorteCaja());
+            AbrirRetiroEfectivoCommand = new RelayCommand(() => AbrirRetiroEfectivo());
 
             _ = CargarProductosAsync();
             _ = CargarMetodosPagoAsync();
@@ -132,7 +139,7 @@ namespace POS.UI.ViewModels
 
             var venta = new Venta
             {
-                MetodoPagoId = 1, // TODO: temporal, hardcodeado a "Efectivo" hasta que exista el selector de método de pago
+                MetodoPagoId = MetodoPagoSeleccionado?.Id ?? 1,
                 SucursalId = _sucursalId,
                 UsuarioId = _usuarioId,
                 Total = Total,
@@ -140,12 +147,9 @@ namespace POS.UI.ViewModels
             };
 
             venta = await _ventaService.RegistrarVentaAsync(venta);
-
             foreach (var detalle in Carrito)
                 await _productoService.DescontarStockAsync(detalle.ProductoId, detalle.Cantidad, _sucursalId);
 
-            // Armamos el ticket a partir de la venta que YA quedó registrada
-            // (así el folio es el Id real que le asignó el servicio, no un número inventado).
             var ticket = new TicketVenta
             {
                 Folio = venta.Id,
@@ -153,7 +157,7 @@ namespace POS.UI.ViewModels
                 NombreCajero = _nombreCajero,
                 Detalles = venta.Detalles,
                 Total = venta.Total,
-                PagoCon = venta.Total // Por ahora asumimos pago exacto; esto cambia cuando agreguemos el campo de "efectivo recibido".
+                PagoCon = venta.Total
             };
 
             await _impresoraTicketService.ImprimirAsync(ticket, _datosNegocio);
@@ -162,6 +166,33 @@ namespace POS.UI.ViewModels
             Total = 0;
             Mensaje = "Venta registrada correctamente.";
             await CargarProductosAsync();
+
+            // -------------- CHECK ACUMULACION EFECTIVO --------------
+            var turno = await _corteCajaService.ObtenerTurnoAbiertoAsync(_sucursalId);
+            if (turno != null)
+            {
+                var totalEfectivo = await _ventaService.ObtenerTotalPorMetodoPagoAsync(_sucursalId, turno.FechaApertura, DateTime.Now, "Efectivo");
+                if (totalEfectivo > UMBRAL_ACUMULACION_EFECTIVO)
+                {
+                    // Notificar y ofrecer abrir modal RETIRO
+                    var result = System.Windows.MessageBox.Show(
+                        $"Acumulaste {totalEfectivo:C} en efectivo desde el inicio del turno. ¿Deseas registrar un retiro ahora?",
+                        "Alerta: Acumulación de efectivo",
+                        System.Windows.MessageBoxButton.YesNo,
+                        System.Windows.MessageBoxImage.Warning);
+
+                    if (result == System.Windows.MessageBoxResult.Yes)
+                    {
+                        var corteVm = new CorteCajaViewModel(_corteCajaService, _ventaService, _sucursalId, _usuarioId);
+                        var corteWindow = new CorteCajaWindow(corteVm)
+                        {
+                            Owner = System.Windows.Application.Current.MainWindow
+                        };
+                        corteWindow.ShowDialog();
+                        // El usuario puede usar RegistrarRetiro dentro del corteVm
+                    }
+                }
+            }
         }
 
         private async Task CargarMetodosPagoAsync()
@@ -171,7 +202,26 @@ namespace POS.UI.ViewModels
             foreach (var m in metodos)
                 MetodosPago.Add(m);
 
-            MetodoPagoSeleccionado = MetodosPago.FirstOrDefault(); // Efectivo por defecto, al ser el primero
+            MetodoPagoSeleccionado = MetodosPago.FirstOrDefault();
+        }
+
+        // ===== NUEVOS MÉTODOS PARA ABRIR VENTANAS MODALES =====
+
+        private void AbrirCorteCaja()
+        {
+            var corteCajaViewModel = new CorteCajaViewModel(_corteCajaService, _ventaService, _sucursalId, _usuarioId);
+            var corteCajaWindow = new CorteCajaWindow(corteCajaViewModel)
+            {
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+
+            corteCajaWindow.ShowDialog();
+        }
+
+        private void AbrirRetiroEfectivo()
+        {
+            // TODO: Implementar ventana modal para Retiro de Efectivo
+            Mensaje = "Funcionalidad de Retiro de Efectivo pendiente de implementar.";
         }
     }
 }

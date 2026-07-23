@@ -13,6 +13,7 @@ namespace POS.UI.ViewModels
         private readonly IImpresoraTicketService _impresoraTicketService;
         private readonly DatosNegocio _datosNegocio;
         private readonly IAuthService _authService;
+        private readonly IMetodoPagoService _metodoPagoService;
 
         // Ahora viene del login, ya no está fijo.
         public int SucursalActualId { get; }
@@ -29,10 +30,7 @@ namespace POS.UI.ViewModels
 
         public RelayCommand IrAVentaCommand { get; }
         public RelayCommand IrAInventarioCommand { get; }
-        public RelayCommand IrACorteCajaCommand { get; }
         public RelayCommand IrAAdministradorCommand { get; }
-
-        private readonly IMetodoPagoService _metodoPagoService;
 
         public MainViewModel(IProductoService productoService, IVentaService ventaService,
               ICorteCajaService corteCajaService, IImpresoraTicketService impresoraTicketService,
@@ -53,20 +51,17 @@ namespace POS.UI.ViewModels
 
             IrAVentaCommand = new RelayCommand(() =>
                 PantallaActual = new VentaViewModel(_productoService, _ventaService, _impresoraTicketService,
-                    _datosNegocio, SucursalActualId, NombreUsuarioActual, UsuarioIdActual, _metodoPagoService));
+                    _datosNegocio, SucursalActualId, NombreUsuarioActual, UsuarioIdActual, _metodoPagoService, _corteCajaService));
 
             IrAInventarioCommand = new RelayCommand(() =>
                 PantallaActual = new InventarioViewModel(_productoService, SucursalActualId));
-
-            IrACorteCajaCommand = new RelayCommand(() =>
-                PantallaActual = new CorteCajaViewModel(_corteCajaService, _ventaService, SucursalActualId, UsuarioIdActual));
 
             IrAAdministradorCommand = new RelayCommand(() =>
                 PantallaActual = new AdministradorViewModel(_productoService, _authService));
 
             // Pantalla inicial
             PantallaActual = new VentaViewModel(_productoService, _ventaService, _impresoraTicketService,
-                _datosNegocio, SucursalActualId, NombreUsuarioActual, UsuarioIdActual, _metodoPagoService);
+                _datosNegocio, SucursalActualId, NombreUsuarioActual, UsuarioIdActual, _metodoPagoService, _corteCajaService);
         }
     }
 }

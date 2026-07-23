@@ -41,8 +41,6 @@
             Height="45" Margin="10,5" />
             <Button Content="Inventario" Command="{Binding IrAInventarioCommand}" Style="{StaticResource BotonMenu}"
             Height="45" Margin="10,5" />
-            <Button Content="Corte de Caja" Command="{Binding IrACorteCajaCommand}" Style="{StaticResource BotonMenu}"
-            Height="45" Margin="10,5" />
             <Button Content="Administrador" Command="{Binding IrAAdministradorCommand}" Style="{StaticResource BotonMenu}"
             Height="45" Margin="10,5" />
         </StackPanel>
