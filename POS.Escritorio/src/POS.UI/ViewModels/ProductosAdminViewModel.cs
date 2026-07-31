@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using POS.Core.Models;
+﻿using POS.Core.Models;
 using POS.Core.Services;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace POS.UI.ViewModels
 {
@@ -72,7 +74,11 @@ namespace POS.UI.ViewModels
         public Producto? ProductoSeleccionado
         {
             get => _productoSeleccionado;
-            set => SetProperty(ref _productoSeleccionado, value);
+            set
+            {
+                if (SetProperty(ref _productoSeleccionado, value))
+                    CommandManager.InvalidateRequerySuggested();
+            }
         }
 
         private string _mensaje = string.Empty;
@@ -82,8 +88,58 @@ namespace POS.UI.ViewModels
             set => SetProperty(ref _mensaje, value);
         }
 
+        private bool _editandoProducto;
+        public bool EditandoProducto
+        {
+            get => _editandoProducto;
+            set => SetProperty(ref _editandoProducto, value);
+        }
 
+        private string _editNombre = string.Empty;
+        public string EditNombre
+        {
+            get => _editNombre;
+            set => SetProperty(ref _editNombre, value);
+        }
 
+        private string _editCodigoBarras = string.Empty;
+        public string EditCodigoBarras
+        {
+            get => _editCodigoBarras;
+            set => SetProperty(ref _editCodigoBarras, value);
+        }
+
+        private decimal _editPrecio;
+        public decimal EditPrecio
+        {
+            get => _editPrecio;
+            set => SetProperty(ref _editPrecio, value);
+        }
+
+        private int _editStockCentro;
+        public int EditStockCentro
+        {
+            get => _editStockCentro;
+            set => SetProperty(ref _editStockCentro, value);
+        }
+
+        private int _editStockNorte;
+        public int EditStockNorte
+        {
+            get => _editStockNorte;
+            set => SetProperty(ref _editStockNorte, value);
+        }
+
+        private int _editStockSur;
+        public int EditStockSur
+        {
+            get => _editStockSur;
+            set => SetProperty(ref _editStockSur, value);
+        }
+
+        public RelayCommand EditarProductoCommand { get; }
+        public RelayCommand GuardarEdicionCommand { get; }
+        public RelayCommand CancelarEdicionCommand { get; }
         public RelayCommand CrearProductoCommand { get; }
         public RelayCommand EliminarProductoCommand { get; }
         public RelayCommand RecargarCommand { get; }
@@ -96,6 +152,10 @@ namespace POS.UI.ViewModels
             EliminarProductoCommand = new RelayCommand(async () => await EliminarProductoAsync());
             RecargarCommand = new RelayCommand(async () => await CargarAsync());
             VolverCommand = new RelayCommand(() => VolverSolicitado?.Invoke());
+            EditarProductoCommand = new RelayCommand(CargarProductoParaEditar, () => ProductoSeleccionado != null);
+            GuardarEdicionCommand = new RelayCommand(async () => await GuardarEdicionAsync());
+            CancelarEdicionCommand = new RelayCommand(() => EditandoProducto = false);
+
 
             _ = CargarAsync();
         }
@@ -149,6 +209,50 @@ namespace POS.UI.ViewModels
 
             await _productoService.EliminarAsync(ProductoSeleccionado.Id);
             Mensaje = "Producto eliminado.";
+            await CargarAsync();
+        }
+
+        private void CargarProductoParaEditar()
+        {
+            if (ProductoSeleccionado == null) return;
+
+            EditNombre = ProductoSeleccionado.Nombre;
+            EditCodigoBarras = ProductoSeleccionado.CodigoBarras ?? string.Empty;
+            EditPrecio = ProductoSeleccionado.Precio;
+
+            EditStockCentro = ProductoSeleccionado.StockPorSucursal.FirstOrDefault(s => s.SucursalId == 1)?.Stock ?? 0;
+            EditStockNorte = ProductoSeleccionado.StockPorSucursal.FirstOrDefault(s => s.SucursalId == 2)?.Stock ?? 0;
+            EditStockSur = ProductoSeleccionado.StockPorSucursal.FirstOrDefault(s => s.SucursalId == 3)?.Stock ?? 0;
+
+            EditandoProducto = true;
+        }
+
+        private async Task GuardarEdicionAsync()
+        {
+            if (ProductoSeleccionado == null) return;
+
+            if (string.IsNullOrWhiteSpace(EditNombre) || EditPrecio <= 0)
+            {
+                Mensaje = "Escribe al menos el nombre y un precio válido.";
+                return;
+            }
+
+            var productoActualizado = new Producto
+            {
+                Id = ProductoSeleccionado.Id,
+                Nombre = EditNombre,
+                CodigoBarras = string.IsNullOrWhiteSpace(EditCodigoBarras) ? null : EditCodigoBarras,
+                Precio = EditPrecio
+            };
+
+            await _productoService.ActualizarAsync(productoActualizado);
+
+            await _productoService.ActualizarStockAsync(ProductoSeleccionado.Id, 1, EditStockCentro);
+            await _productoService.ActualizarStockAsync(ProductoSeleccionado.Id, 2, EditStockNorte);
+            await _productoService.ActualizarStockAsync(ProductoSeleccionado.Id, 3, EditStockSur);
+
+            EditandoProducto = false;
+            Mensaje = "Producto actualizado correctamente.";
             await CargarAsync();
         }
     }

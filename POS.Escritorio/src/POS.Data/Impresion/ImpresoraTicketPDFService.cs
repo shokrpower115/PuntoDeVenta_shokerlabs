@@ -87,5 +87,80 @@ namespace POS.Data.Impresion
 
             return Task.CompletedTask;
         }
+
+        public Task ImprimirCorteAsync(TicketCorte ticket, DatosNegocio negocio)
+        {
+            var carpeta = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "TicketsPOS");
+            Directory.CreateDirectory(carpeta);
+            var ruta = Path.Combine(carpeta, $"corte_{ticket.CorteCajaId}.pdf");
+
+            Document.Create(contenedor =>
+            {
+                contenedor.Page(pagina =>
+                {
+                    pagina.Size(AnchoTicketPuntos, 900, Unit.Point);
+                    pagina.Margin(10);
+                    pagina.DefaultTextStyle(e => e.FontSize(9).FontFamily("Consolas"));
+
+                    pagina.Content().Column(col =>
+                    {
+                        col.Item().AlignCenter().Text(negocio.Nombre).Bold().FontSize(13);
+                        col.Item().AlignCenter().Text("CORTE DE CAJA").Bold().FontSize(11);
+
+                        col.Item().PaddingTop(5).Text($"CAJERO: {ticket.NombreCajero}");
+                        col.Item().Text($"APERTURA: {ticket.FechaApertura:dd/MM/yyyy hh:mm tt}");
+                        col.Item().Text($"CIERRE: {ticket.FechaCierre:dd/MM/yyyy hh:mm tt}");
+                        col.Item().Text($"FOLIO CORTE: {ticket.CorteCajaId}");
+
+                        col.Item().PaddingTop(8).LineHorizontal(1);
+                        col.Item().Text("VENTAS POR METODO DE PAGO").Bold();
+                        foreach (var (metodo, total) in ticket.VentasPorMetodoPago)
+                        {
+                            col.Item().Row(fila =>
+                            {
+                                fila.RelativeItem(3).Text(metodo.ToUpper());
+                                fila.RelativeItem(2).AlignRight().Text(total.ToString("C"));
+                            });
+                        }
+
+                        col.Item().PaddingTop(8).LineHorizontal(1);
+                        col.Item().Text("MOVIMIENTOS DE CAJA").Bold();
+                        if (ticket.Movimientos.Count == 0)
+                        {
+                            col.Item().Text("Sin movimientos registrados.");
+                        }
+                        foreach (var mov in ticket.Movimientos)
+                        {
+                            var razon = mov.Categoria?.Nombre == "Otro" ? mov.DescripcionOtro : mov.Categoria?.Nombre;
+                            var signo = mov.Categoria?.Tipo == TipoMovimientoCaja.Entrada ? "+" : "-";
+                            col.Item().Row(fila =>
+                            {
+                                fila.RelativeItem(3).Text($"{signo} {razon}");
+                                fila.RelativeItem(2).AlignRight().Text(mov.Monto.ToString("C"));
+                            });
+                        }
+
+                        col.Item().PaddingTop(8).LineHorizontal(1);
+                        col.Item().PaddingTop(5).Text($"EFECTIVO INICIAL: {ticket.EfectivoInicial:C}");
+                        col.Item().Text($"TOTAL ENTRADAS: {ticket.TotalEntradas:C}");
+                        col.Item().Text($"TOTAL RETIROS: {ticket.TotalRetiros:C}");
+                        col.Item().PaddingTop(3).Text($"EFECTIVO ESPERADO: {ticket.EfectivoEsperado:C}").Bold();
+                        col.Item().Text($"EFECTIVO CONTADO: {ticket.EfectivoContado:C}").Bold();
+
+                        var colorDiferencia = ticket.Diferencia == 0 ? Colors.Black : Colors.Red.Darken2;
+                        col.Item().PaddingTop(3).Text($"DIFERENCIA: {ticket.Diferencia:C}")
+                            .Bold().FontColor(colorDiferencia);
+
+                        col.Item().PaddingTop(10).AlignCenter().Text("FIN DEL CORTE");
+                    });
+                });
+            })
+            .GeneratePdf(ruta);
+
+            Process.Start(new ProcessStartInfo(ruta) { UseShellExecute = true });
+
+            return Task.CompletedTask;
+        }
     }
 }

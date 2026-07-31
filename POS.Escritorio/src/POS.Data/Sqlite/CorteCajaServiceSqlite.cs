@@ -41,7 +41,11 @@ namespace POS.Data.Sqlite
         {
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
-            var corte = await db.CortesCaja.FirstAsync(c => c.Id == corteId);
+            var corte = await db.CortesCaja
+                .Include(c => c.Movimientos)
+                    .ThenInclude(m => m.Categoria)
+                .FirstAsync(c => c.Id == corteId);
+
             corte.EfectivoFinal = efectivoFinal;
             corte.TotalVentasEfectivo = totalVentasEfectivo;
             corte.TotalVentasTarjeta = totalVentasTarjeta;
@@ -70,6 +74,14 @@ namespace POS.Data.Sqlite
             return movimiento;
         }
 
+        public async Task<List<MovimientoCaja>> ObtenerMovimientosDelTurnoAsync(int corteId)
+        {
+            using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
+            return await db.MovimientosCaja
+                .Include(m => m.Categoria)
+                .Where(m => m.CorteCajaId == corteId)
+                .ToListAsync();
+        }
     }
 }

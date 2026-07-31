@@ -54,5 +54,20 @@ namespace POS.Data.Sqlite
 
             return ventas.Sum(v => v.Total);
         }
+
+        public async Task<List<(string MetodoPago, decimal Total)>> ObtenerDesglosePorMetodoPagoAsync(int sucursalId, DateTime desde, DateTime hasta)
+        {
+            using var db = new PosDbContext(RutaBaseDatos.Obtener());
+
+            var ventas = await db.Ventas
+                .Include(v => v.MetodoPago)
+                .Where(v => v.SucursalId == sucursalId && v.Fecha >= desde && v.Fecha <= hasta)
+                .ToListAsync();
+
+            return ventas
+                .GroupBy(v => v.MetodoPago!.Nombre)
+                .Select(g => (g.Key, g.Sum(v => v.Total)))
+                .ToList();
+        }
     }
 }

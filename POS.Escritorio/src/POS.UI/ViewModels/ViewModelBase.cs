@@ -17,5 +17,13 @@ namespace POS.UI.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nombrePropiedad));
             return true;
         }
+
+        // Dispara manualmente el evento de cambio para propiedades calculadas
+        // (sin campo propio) que dependen de otra propiedad — como RequiereMontoPagado,
+        // que depende de MetodoPagoSeleccionado.
+        protected void OnPropertyChanged(string nombrePropiedad)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nombrePropiedad));
+        }
     }
 }

@@ -11,7 +11,7 @@
                 <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
                 <DataGridTextColumn Header="Código de barras" Binding="{Binding CodigoBarras}" Width="150"/>
                 <DataGridTextColumn Header="Precio" Binding="{Binding Precio, StringFormat=C}" Width="100"/>
-                <DataGridTextColumn Header="Stock" Binding="{Binding StockPorSucursal[0].Stock}"/>
+                <DataGridTextColumn Header="Stock" Binding="{Binding StockPorSucursal[0].Stock, FallbackValue=0}" Width="60"/>
             </DataGrid.Columns>
         </DataGrid>
     </StackPanel>

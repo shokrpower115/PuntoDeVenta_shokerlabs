@@ -3,7 +3,8 @@ namespace POS.Core.Models
     public enum RolUsuario
     {
         Cajero,
-        Administrador
+        Administrador,
+        SuperAdministrador // reservado para cuando haya múltiples sucursales con la WebAPI
     }
 
     public class Usuario

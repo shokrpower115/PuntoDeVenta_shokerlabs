@@ -1,0 +1,28 @@
+﻿<Window x:Class="POS.UI.InventarioConsultaWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Inventario" Width="600" Height="600"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BrushFondo}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Inventario de la sucursal" FontSize="20" FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <Button Grid.Row="1" Content="Recargar" Command="{Binding RecargarCommand}" Style="{StaticResource BotonPrimario}"
+                HorizontalAlignment="Left" Padding="15,6" Margin="0,0,0,15"/>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Productos}" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
+                <DataGridTextColumn Header="Código de barras" Binding="{Binding CodigoBarras}" Width="150"/>
+                <DataGridTextColumn Header="Precio" Binding="{Binding Precio, StringFormat=C}" Width="100"/>
+                <DataGridTextColumn Header="Stock" Binding="{Binding StockPorSucursal[0].Stock, FallbackValue=0}" Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>

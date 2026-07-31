@@ -1,0 +1,23 @@
+﻿<Window x:Class="POS.UI.DisponibilidadWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Disponibilidad en otras sucursales" Width="420" Height="350"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BrushFondo}">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="{Binding NombreProductoConsultado, StringFormat='Disponibilidad de: {0}'}"
+                   FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding DisponibilidadOtrasSucursales}" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Sucursal" Binding="{Binding NombreSucursal}" Width="*"/>
+                <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>

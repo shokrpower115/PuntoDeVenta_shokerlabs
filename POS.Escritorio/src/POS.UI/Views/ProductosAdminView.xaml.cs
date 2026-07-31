@@ -2,9 +2,9 @@
 
 namespace POS.UI.Views
 {
-    public partial class AdministradorView : UserControl
+    public partial class ProductosAdminView : UserControl
     {
-        public AdministradorView()
+        public ProductosAdminView()
         {
             InitializeComponent();
         }

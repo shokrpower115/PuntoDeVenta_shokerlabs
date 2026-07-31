@@ -11,39 +11,46 @@
         </Grid.ColumnDefinitions>
 
         <!-- Menú lateral -->
-        <StackPanel Grid.Column="0" Background="{StaticResource BrushAzulPrimario}">
+        <Grid Grid.Column="0" Background="{StaticResource BrushAzulPrimario}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <!-- Logo de la empresa -->
-            <Image Source="/Assets/Logo_Empresa.jpeg"
-           Width="100" Height="100"
-           Margin="0,25,0,10"
-           Stretch="Uniform"/>
+            <!-- Contenido de arriba: logo, bienvenida, menú -->
+            <StackPanel Grid.Row="0">
+                <!-- Logo de la empresa -->
+                <Image Source="/Assets/Logo_Empresa.jpeg"
+                       Width="100" Height="100"
+                       Margin="0,25,0,10"
+                       Stretch="Uniform"/>
+                <!-- Mensaje personalizado (bienvenida o slogan) -->
+                <TextBlock Text="Bienvenido"
+                           Foreground="{StaticResource BrushTextoClaro}"
+                           FontSize="14" FontStyle="Italic"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,20"/>
+                <!-- Nombre del usuario + puesto -->
+                <TextBlock Text="{Binding NombreUsuarioActual}"
+                           Foreground="{StaticResource BrushTextoClaro}"
+                           FontSize="16" FontWeight="Bold"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding PuestoActual}"
+                           Foreground="{StaticResource BrushGrisClaro}"
+                           FontSize="12"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,30"/>
+                <Button Content="Venta" Command="{Binding IrAVentaCommand}" Style="{StaticResource BotonMenu}"
+                        Height="45" Margin="10,5" />
+                <Button Content="Administrador" Command="{Binding IrAAdministradorCommand}" Style="{StaticResource BotonMenu}"
+                        Height="45" Margin="10,5" />
+            </StackPanel>
 
-            <!-- Mensaje personalizado (bienvenida o slogan) -->
-            <TextBlock Text="Bienvenido"
-               Foreground="{StaticResource BrushTextoClaro}"
-               FontSize="14" FontStyle="Italic"
-               HorizontalAlignment="Center"
-               Margin="0,0,0,20"/>
-
-            <!-- Nombre del usuario + puesto -->
-            <TextBlock Text="{Binding NombreUsuarioActual}"
-               Foreground="{StaticResource BrushTextoClaro}"
-               FontSize="16" FontWeight="Bold"
-               HorizontalAlignment="Center"/>
-            <TextBlock Text="{Binding PuestoActual}"
-               Foreground="{StaticResource BrushGrisClaro}"
-               FontSize="12"
-               HorizontalAlignment="Center"
-               Margin="0,0,0,30"/>
-
-            <Button Content="Venta" Command="{Binding IrAVentaCommand}" Style="{StaticResource BotonMenu}"
-            Height="45" Margin="10,5" />
-            <Button Content="Inventario" Command="{Binding IrAInventarioCommand}" Style="{StaticResource BotonMenu}"
-            Height="45" Margin="10,5" />
-            <Button Content="Administrador" Command="{Binding IrAAdministradorCommand}" Style="{StaticResource BotonMenu}"
-            Height="45" Margin="10,5" />
-        </StackPanel>
+            <!-- Cerrar sesión, anclado al fondo real de la ventana -->
+            <Button Grid.Row="1" Content="Cerrar sesión" Command="{Binding CerrarSesionCommand}"
+                    Background="{StaticResource BrushRojoPrimario}" Foreground="{StaticResource BrushTextoClaro}"
+                    FontWeight="Bold" BorderThickness="0" Height="45" Margin="10,0,10,20"/>
+        </Grid>
 
         <!-- Área de contenido: aquí se inyecta la pantalla actual -->
         <ContentControl Grid.Column="1" Content="{Binding PantallaActual}" Margin="20"/>

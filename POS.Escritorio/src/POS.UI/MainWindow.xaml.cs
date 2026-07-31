@@ -9,6 +9,8 @@ namespace POS.UI
         {
             InitializeComponent();
             DataContext = viewModel;
+
+            viewModel.SesionCerrada += () => Close();
         }
     }
 }

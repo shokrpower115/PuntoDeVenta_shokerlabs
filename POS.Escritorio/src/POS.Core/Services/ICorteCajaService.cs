@@ -13,5 +13,6 @@ namespace POS.Core.Services
         // Nuevos:
         Task<List<CategoriaMovimientoCaja>> ObtenerCategoriasActivasAsync(TipoMovimientoCaja tipo);
         Task<MovimientoCaja> RegistrarMovimientoAsync(MovimientoCaja movimiento);
+        Task<List<MovimientoCaja>> ObtenerMovimientosDelTurnoAsync(int corteId);
     }
 }

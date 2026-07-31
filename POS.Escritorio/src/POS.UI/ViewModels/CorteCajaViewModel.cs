@@ -1,5 +1,6 @@
 using POS.Core.Models;
 using POS.Core.Services;
+using System.Linq;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -12,6 +13,12 @@ namespace POS.UI.ViewModels
         private readonly IVentaService _ventaService;
         private readonly int _sucursalId;
         private readonly int _usuarioId;
+
+        private readonly IImpresoraTicketService _impresoraTicketService;
+        private readonly DatosNegocio _datosNegocio;
+
+        private readonly IAuthService _authService;
+        private readonly string _nombreUsuarioEsperado;
 
         private string _mensaje = string.Empty;
         public string Mensaje
@@ -71,17 +78,25 @@ namespace POS.UI.ViewModels
         public RelayCommand AbrirTurnoCommand { get; }
         public RelayCommand CerrarTurnoCommand { get; }
 
-        public CorteCajaViewModel(ICorteCajaService corteCajaService, IVentaService ventaService, int sucursalId, int usuarioId)
+        public CorteCajaViewModel(ICorteCajaService corteCajaService, IVentaService ventaService,
+            IAuthService authService, IImpresoraTicketService impresoraTicketService, DatosNegocio datosNegocio,
+            int sucursalId, int usuarioId, string nombreUsuarioEsperado)
         {
             _corteCajaService = corteCajaService;
             _ventaService = ventaService;
+            _authService = authService;
             _sucursalId = sucursalId;
             _usuarioId = usuarioId;
+            _nombreUsuarioEsperado = nombreUsuarioEsperado;
+            _impresoraTicketService = impresoraTicketService;
+            _datosNegocio = datosNegocio;
 
             AbrirTurnoCommand = new RelayCommand(async () => await AbrirTurnoAsync());
             CerrarTurnoCommand = new RelayCommand(async () => await CerrarTurnoAsync());
             RegistrarEntradaCommand = new RelayCommand(async () => await RegistrarEntradaAsync());
             RegistrarRetiroCommand = new RelayCommand(async () => await RegistrarRetiroAsync());
+            RealizarCorteCommand = new RelayCommand(async () => await RealizarCorteAsync());
+
 
             _ = CargarTurnoAsync();
             _ = CargarCategoriasAsync();
@@ -131,6 +146,22 @@ namespace POS.UI.ViewModels
 
         public RelayCommand RegistrarEntradaCommand { get; }
         public RelayCommand RegistrarRetiroCommand { get; }
+
+        private string _nombreUsuarioConfirmacion = string.Empty;
+        public string NombreUsuarioConfirmacion
+        {
+            get => _nombreUsuarioConfirmacion;
+            set => SetProperty(ref _nombreUsuarioConfirmacion, value);
+        }
+
+        public string PasswordConfirmacion { get; set; } = string.Empty; // No necesita SetProperty, no se bindea visualmente por seguridad
+
+        private string _mensajeError = string.Empty;
+        public string MensajeError
+        {
+            get => _mensajeError;
+            set => SetProperty(ref _mensajeError, value);
+        }
 
         private async Task CargarTurnoAsync()
         {
@@ -232,6 +263,71 @@ namespace POS.UI.ViewModels
             MontoRetiro = 0;
             DescripcionOtroRetiro = string.Empty;
             await CargarTurnoAsync();
+        }
+
+        public RelayCommand RealizarCorteCommand { get; }
+
+        public event Action? CorteFinalizado;
+        private async Task RealizarCorteAsync()
+        {
+            MensajeError = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(NombreUsuarioConfirmacion) || string.IsNullOrWhiteSpace(PasswordConfirmacion))
+            {
+                MensajeError = "Confirma tu usuario y contraseña.";
+                return;
+            }
+
+            // Paso 1: ¿el nombre de usuario escrito es el mismo que inició sesión?
+            if (!NombreUsuarioConfirmacion.Trim().Equals(_nombreUsuarioEsperado, StringComparison.OrdinalIgnoreCase))
+            {
+                MensajeError = "Debes confirmar con tu propio usuario, no el de otra persona.";
+                return;
+            }
+
+            // Paso 2: ¿la contraseña es correcta para ESE usuario?
+            var usuarioValidado = await _authService.LoginAsync(NombreUsuarioConfirmacion, PasswordConfirmacion);
+            if (usuarioValidado == null)
+            {
+                MensajeError = "Usuario o contraseña incorrectos.";
+                return;
+            }
+
+            if (TurnoActual == null)
+            {
+                MensajeError = "No hay un turno abierto para cerrar.";
+                return;
+            }
+
+            // Validación ya pasó: aquí sigue la fórmula del corte (siguiente paso).
+            await ActualizarTotalVentasAsync();
+            var corteCerrado = await _corteCajaService.CerrarTurnoAsync(TurnoActual.Id, EfectivoFinal, TotalEfectivo, TotalTarjeta);
+            TurnoActual = corteCerrado;
+
+            var desglose = await _ventaService.ObtenerDesglosePorMetodoPagoAsync(_sucursalId, corteCerrado.FechaApertura, corteCerrado.FechaCierre ?? DateTime.Now);
+            var movimientos = await _corteCajaService.ObtenerMovimientosDelTurnoAsync(corteCerrado.Id);
+
+            var ticket = new TicketCorte
+            {
+                CorteCajaId = corteCerrado.Id,
+                NombreCajero = _nombreUsuarioEsperado,
+                FechaApertura = corteCerrado.FechaApertura,
+                FechaCierre = corteCerrado.FechaCierre ?? DateTime.Now,
+                EfectivoInicial = corteCerrado.EfectivoInicial,
+                VentasPorMetodoPago = desglose,
+                Movimientos = movimientos,
+                TotalEntradas = movimientos.Where(m => m.Categoria?.Tipo == TipoMovimientoCaja.Entrada).Sum(m => m.Monto),
+                TotalRetiros = movimientos.Where(m => m.Categoria?.Tipo == TipoMovimientoCaja.Retiro).Sum(m => m.Monto),
+                EfectivoEsperado = corteCerrado.EfectivoEsperado,
+                EfectivoContado = EfectivoFinal,
+                Diferencia = corteCerrado.Diferencia
+            };
+
+            await _impresoraTicketService.ImprimirCorteAsync(ticket, _datosNegocio);
+
+            MensajeError = "Corte realizado correctamente.";
+
+            CorteFinalizado?.Invoke();
         }
     }
 }
