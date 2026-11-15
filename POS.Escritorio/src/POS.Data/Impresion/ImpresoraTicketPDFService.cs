@@ -1,4 +1,4 @@
-﻿using POS.Core.Models;
+using POS.Core.Models;
 using POS.Core.Services;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -132,7 +132,7 @@ namespace POS.Data.Impresion
                         }
                         foreach (var mov in ticket.Movimientos)
                         {
-                            var razon = mov.Categoria?.Nombre == "Otro" ? mov.DescripcionOtro : mov.Categoria?.Nombre;
+                            var razon = mov.Categoria?.RequiereDescripcion == true ? mov.DescripcionOtro : mov.Categoria?.Nombre;
                             var signo = mov.Categoria?.Tipo == TipoMovimientoCaja.Entrada ? "+" : "-";
                             col.Item().Row(fila =>
                             {

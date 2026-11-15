@@ -38,7 +38,7 @@ namespace POS.UI.ViewModels
             }
         }
 
-        public bool RequiereDescripcionOtro => RazonSeleccionada?.Nombre == "Otro";
+        public bool RequiereDescripcionOtro => RazonSeleccionada?.RequiereDescripcion == true;
 
         private string _descripcionOtro = string.Empty;
         public string DescripcionOtro
@@ -108,6 +108,11 @@ namespace POS.UI.ViewModels
             if (RazonSeleccionada == null)
             {
                 MensajeError = "Selecciona una razón.";
+                return;
+            }
+            if (RequiereDescripcionOtro && string.IsNullOrWhiteSpace(DescripcionOtro))
+            {
+                MensajeError = "Describe la razón del movimiento.";
                 return;
             }
             if (Monto <= 0)

@@ -208,7 +208,7 @@ namespace POS.UI.ViewModels
             if (ProductoSeleccionado == null) return;
 
             await _productoService.EliminarAsync(ProductoSeleccionado.Id);
-            Mensaje = "Producto eliminado.";
+            Mensaje = "Producto desactivado. Ya no aparecerá en venta; sus ventas anteriores se conservan.";
             await CargarAsync();
         }
 

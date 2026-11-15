@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using POS.Core;
 using POS.Core.Models;
 using POS.Core.Services;
 
@@ -14,6 +14,36 @@ namespace POS.Data.Sqlite
         {
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
+            var turno = await db.CortesCaja
+                .FirstOrDefaultAsync(c => c.SucursalId == venta.SucursalId && !c.Cerrado);
+            if (turno == null)
+                throw new ReglaNegocioException("No hay un turno abierto en esta sucursal. Abre un turno antes de vender.");
+            venta.CorteCajaId = turno.Id;
+
+            // Se valida y descuenta el stock en el mismo DbContext que la venta:
+            // un solo SaveChangesAsync = una sola transacción. Si algo falla,
+            // no se guarda ni la venta ni el descuento de inventario.
+            var cantidadesPorProducto = venta.Detalles
+                .GroupBy(d => d.ProductoId)
+                .ToDictionary(g => g.Key, g => g.Sum(d => d.Cantidad));
+
+            var stocks = await db.ProductoSucursales
+                .Include(s => s.Producto)
+                .Where(s => s.SucursalId == venta.SucursalId && cantidadesPorProducto.Keys.Contains(s.ProductoId))
+                .ToDictionaryAsync(s => s.ProductoId);
+
+            foreach (var (productoId, cantidad) in cantidadesPorProducto)
+            {
+                if (!stocks.TryGetValue(productoId, out var stock) || stock.Stock < cantidad)
+                {
+                    var nombre = venta.Detalles.First(d => d.ProductoId == productoId).NombreProducto;
+                    var disponible = stock?.Stock ?? 0;
+                    throw new ReglaNegocioException(
+                        $"Stock insuficiente de '{nombre}': se piden {cantidad} y hay {disponible}. No se registró la venta.");
+                }
+                stock.Stock -= cantidad;
+            }
+
             db.Ventas.Add(venta);
             await db.SaveChangesAsync();
 
@@ -22,46 +52,36 @@ namespace POS.Data.Sqlite
             return venta;
         }
 
-        public async Task<List<Venta>> ObtenerVentasDelTurnoAsync(int sucursalId, DateTime desde)
+        public async Task<List<Venta>> ObtenerVentasDelTurnoAsync(int corteId)
         {
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
             return await db.Ventas
                 .Include(v => v.Detalles)
-                .Where(v => v.SucursalId == sucursalId && v.Fecha >= desde)
+                .Where(v => v.CorteCajaId == corteId)
                 .ToListAsync();
         }
 
-        public async Task<decimal> ObtenerTotalVentasAsync(int sucursalId, DateTime desde, DateTime hasta)
+        public async Task<decimal> ObtenerTotalPorTipoPagoAsync(int corteId, TipoMetodoPago tipo)
         {
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
-            return await db.Ventas
-                .Where(v => v.SucursalId == sucursalId && v.Fecha >= desde && v.Fecha <= hasta)
-                .SumAsync(v => v.Total);
+            // SQLite no suma decimales del lado de la base, por eso se suma en memoria.
+            var totales = await db.Ventas
+                .Where(v => v.CorteCajaId == corteId && v.MetodoPago!.Tipo == tipo)
+                .Select(v => v.Total)
+                .ToListAsync();
+
+            return totales.Sum();
         }
 
-        public async Task<decimal> ObtenerTotalPorMetodoPagoAsync(int sucursalId, DateTime desde, DateTime hasta, string nombreMetodoPago)
+        public async Task<List<(string MetodoPago, decimal Total)>> ObtenerDesglosePorMetodoPagoAsync(int corteId)
         {
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
             var ventas = await db.Ventas
                 .Include(v => v.MetodoPago)
-                .Where(v => v.SucursalId == sucursalId
-                         && v.Fecha >= desde && v.Fecha <= hasta
-                         && v.MetodoPago!.Nombre == nombreMetodoPago)
-                .ToListAsync();
-
-            return ventas.Sum(v => v.Total);
-        }
-
-        public async Task<List<(string MetodoPago, decimal Total)>> ObtenerDesglosePorMetodoPagoAsync(int sucursalId, DateTime desde, DateTime hasta)
-        {
-            using var db = new PosDbContext(RutaBaseDatos.Obtener());
-
-            var ventas = await db.Ventas
-                .Include(v => v.MetodoPago)
-                .Where(v => v.SucursalId == sucursalId && v.Fecha >= desde && v.Fecha <= hasta)
+                .Where(v => v.CorteCajaId == corteId)
                 .ToListAsync();
 
             return ventas

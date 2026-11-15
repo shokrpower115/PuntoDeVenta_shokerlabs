@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using POS.Core;
 using POS.Core.Models;
 using POS.Core.Services;
 using System.Collections.Generic;
@@ -107,7 +108,15 @@ namespace POS.UI.ViewModels
                 SucursalId = NuevaSucursalId
             };
 
-            await _authService.CrearUsuarioAsync(usuario, NuevoPassword);
+            try
+            {
+                await _authService.CrearUsuarioAsync(usuario, NuevoPassword);
+            }
+            catch (ReglaNegocioException ex)
+            {
+                Mensaje = ex.Message;
+                return;
+            }
 
             NuevoNombreUsuario = string.Empty;
             NuevoPassword = string.Empty;

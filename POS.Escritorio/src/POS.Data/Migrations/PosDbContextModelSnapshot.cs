@@ -30,6 +30,9 @@ namespace POS.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("RequiereDescripcion")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Tipo")
                         .HasColumnType("INTEGER");
 
@@ -43,6 +46,7 @@ namespace POS.Data.Migrations
                             Id = 1,
                             Activo = true,
                             Nombre = "Fondo adicional / Cambio solicitado",
+                            RequiereDescripcion = false,
                             Tipo = 0
                         },
                         new
@@ -50,6 +54,7 @@ namespace POS.Data.Migrations
                             Id = 2,
                             Activo = true,
                             Nombre = "Otro",
+                            RequiereDescripcion = true,
                             Tipo = 0
                         },
                         new
@@ -57,6 +62,7 @@ namespace POS.Data.Migrations
                             Id = 3,
                             Activo = true,
                             Nombre = "Retiro por seguridad",
+                            RequiereDescripcion = false,
                             Tipo = 1
                         },
                         new
@@ -64,6 +70,7 @@ namespace POS.Data.Migrations
                             Id = 4,
                             Activo = true,
                             Nombre = "Depósito bancario",
+                            RequiereDescripcion = false,
                             Tipo = 1
                         },
                         new
@@ -71,6 +78,7 @@ namespace POS.Data.Migrations
                             Id = 5,
                             Activo = true,
                             Nombre = "Otro",
+                            RequiereDescripcion = true,
                             Tipo = 1
                         });
                 });
@@ -130,6 +138,9 @@ namespace POS.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Tipo")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.ToTable("MetodosPago");
@@ -139,25 +150,29 @@ namespace POS.Data.Migrations
                         {
                             Id = 1,
                             Activo = true,
-                            Nombre = "Efectivo"
+                            Nombre = "Efectivo",
+                            Tipo = 0
                         },
                         new
                         {
                             Id = 2,
                             Activo = true,
-                            Nombre = "Tarjeta de crédito"
+                            Nombre = "Tarjeta de crédito",
+                            Tipo = 1
                         },
                         new
                         {
                             Id = 3,
                             Activo = true,
-                            Nombre = "Tarjeta de débito"
+                            Nombre = "Tarjeta de débito",
+                            Tipo = 1
                         },
                         new
                         {
                             Id = 4,
                             Activo = true,
-                            Nombre = "Transferencia"
+                            Nombre = "Transferencia",
+                            Tipo = 2
                         });
                 });
 
@@ -200,6 +215,9 @@ namespace POS.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("CodigoBarras")
@@ -276,13 +294,17 @@ namespace POS.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("DebeCambiarPassword")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("NombreCompleto")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("NombreUsuario")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -300,6 +322,9 @@ namespace POS.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("NombreUsuario")
+                        .IsUnique();
+
                     b.HasIndex("SucursalId");
 
                     b.ToTable("Usuarios");
@@ -308,6 +333,7 @@ namespace POS.Data.Migrations
                         new
                         {
                             Id = 1,
+                            DebeCambiarPassword = false,
                             NombreCompleto = "Moisés",
                             NombreUsuario = "centro",
                             PasswordHash = "2ysu65SpAZMDqaBczOfJ0w==.FbzrKO0gw1x9k438UvVyLJPXafHqZx9P052GaD9aHKM=",
@@ -318,6 +344,7 @@ namespace POS.Data.Migrations
                         new
                         {
                             Id = 2,
+                            DebeCambiarPassword = false,
                             NombreCompleto = "Moisés",
                             NombreUsuario = "norte",
                             PasswordHash = "J7JS3UEacFTKclq1dCVWvA==.dO8j6wgs7hFmnKJ3DO/IK/p7n+k5F17Z5tGv8xnnd5Q=",
@@ -328,6 +355,7 @@ namespace POS.Data.Migrations
                         new
                         {
                             Id = 3,
+                            DebeCambiarPassword = false,
                             NombreCompleto = "Moisés",
                             NombreUsuario = "sur",
                             PasswordHash = "EzzYO4MDYuynJni/1CiPpQ==.f/ieFBawAvVHfSj+p6pQkKGn118/9IAJtwdm6sRqQe8=",
@@ -341,6 +369,9 @@ namespace POS.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CorteCajaId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Fecha")
@@ -362,6 +393,8 @@ namespace POS.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CorteCajaId");
 
                     b.HasIndex("MetodoPagoId");
 
@@ -406,13 +439,13 @@ namespace POS.Data.Migrations
                     b.HasOne("POS.Core.Models.Sucursal", "Sucursal")
                         .WithMany("CortesCaja")
                         .HasForeignKey("SucursalId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("POS.Core.Models.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Sucursal");
@@ -425,7 +458,7 @@ namespace POS.Data.Migrations
                     b.HasOne("POS.Core.Models.CategoriaMovimientoCaja", "Categoria")
                         .WithMany()
                         .HasForeignKey("CategoriaId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("POS.Core.Models.CorteDeCaja", "CorteCaja")
@@ -437,7 +470,7 @@ namespace POS.Data.Migrations
                     b.HasOne("POS.Core.Models.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Categoria");
@@ -458,7 +491,7 @@ namespace POS.Data.Migrations
                     b.HasOne("POS.Core.Models.Sucursal", "Sucursal")
                         .WithMany("StockDeProductos")
                         .HasForeignKey("SucursalId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Producto");
@@ -471,7 +504,7 @@ namespace POS.Data.Migrations
                     b.HasOne("POS.Core.Models.Sucursal", "Sucursal")
                         .WithMany("Usuarios")
                         .HasForeignKey("SucursalId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Sucursal");
@@ -479,23 +512,30 @@ namespace POS.Data.Migrations
 
             modelBuilder.Entity("POS.Core.Models.Venta", b =>
                 {
+                    b.HasOne("POS.Core.Models.CorteDeCaja", "CorteCaja")
+                        .WithMany()
+                        .HasForeignKey("CorteCajaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("POS.Core.Models.MetodoPago", "MetodoPago")
                         .WithMany()
                         .HasForeignKey("MetodoPagoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("POS.Core.Models.Sucursal", "Sucursal")
                         .WithMany("Ventas")
                         .HasForeignKey("SucursalId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("POS.Core.Models.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("CorteCaja");
 
                     b.Navigation("MetodoPago");
 

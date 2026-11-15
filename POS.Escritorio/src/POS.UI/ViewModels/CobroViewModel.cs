@@ -52,7 +52,7 @@ namespace POS.UI.ViewModels
 
         // Solo en Efectivo tiene sentido preguntar "con cuánto paga" y calcular feria.
         // En tarjeta/vale/transferencia el monto siempre es exacto al total.
-        public bool RequiereMontoPagado => MetodoPagoSeleccionado?.Nombre == "Efectivo";
+        public bool RequiereMontoPagado => MetodoPagoSeleccionado?.Tipo == TipoMetodoPago.Efectivo;
 
         public event Action? ConfirmadoExitoso;
         public event Action? CancelarSolicitado;

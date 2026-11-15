@@ -23,4 +23,8 @@
     <Resource Include="Assets\Logo_Empresa.jpeg" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+  </ItemGroup>
+
 </Project>

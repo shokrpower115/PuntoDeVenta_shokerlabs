@@ -7,6 +7,9 @@ namespace POS.Core.Models
         public string? CodigoBarras { get; set; }
         public decimal Precio { get; set; }
 
+        // Los productos no se borran (las ventas históricas los referencian); se desactivan.
+        public bool Activo { get; set; } = true;
+
         public List<ProductoSucursal> StockPorSucursal { get; set; } = new();
     }
 

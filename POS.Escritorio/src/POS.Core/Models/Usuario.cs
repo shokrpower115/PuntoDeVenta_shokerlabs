@@ -4,7 +4,7 @@ namespace POS.Core.Models
     {
         Cajero,
         Administrador,
-        SuperAdministrador // reservado para cuando haya m�ltiples sucursales con la WebAPI
+        SuperAdministrador // reservado para cuando haya múltiples sucursales con la WebAPI
     }
 
     public class Usuario
@@ -16,6 +16,12 @@ namespace POS.Core.Models
         public string NombreCompleto { get; set; } = string.Empty;
         public string Puesto { get; set; } = string.Empty;
         public RolUsuario Rol { get; set; } = RolUsuario.Cajero;
+
+        // Se pide cambiar la contraseña en el siguiente inicio de sesión
+        // (por ejemplo, el administrador inicial que viene con contraseña por defecto).
+        public bool DebeCambiarPassword { get; set; }
+
+        public bool EsAdministrador => Rol is RolUsuario.Administrador or RolUsuario.SuperAdministrador;
 
         public int SucursalId { get; set; }
         public Sucursal? Sucursal { get; set; }

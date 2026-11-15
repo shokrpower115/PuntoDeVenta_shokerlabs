@@ -22,6 +22,9 @@ namespace POS.UI.ViewModels
         public int UsuarioIdActual { get; }
         public string NombreUsuarioLogin { get; }
 
+        // El módulo Administrador (precios, stock, usuarios) solo es para administradores.
+        public bool EsAdministrador { get; }
+
         private ViewModelBase _pantallaActual = null!;
         public ViewModelBase PantallaActual
         {
@@ -52,6 +55,8 @@ namespace POS.UI.ViewModels
             NombreUsuarioActual = usuarioActual.NombreCompleto;
             UsuarioIdActual = usuarioActual.Id;
             NombreUsuarioLogin = usuarioActual.NombreUsuario;
+            PuestoActual = usuarioActual.Puesto;
+            EsAdministrador = usuarioActual.EsAdministrador;
 
             CerrarSesionCommand = new RelayCommand(async () => await CerrarSesionAsync());
 
@@ -61,8 +66,9 @@ namespace POS.UI.ViewModels
                 _corteCajaService, _authService, NombreUsuarioLogin));
 
             
-            IrAAdministradorCommand = new RelayCommand(() =>
-                PantallaActual = new AdministradorViewModel(_productoService, _authService));
+            IrAAdministradorCommand = new RelayCommand(
+                () => PantallaActual = new AdministradorViewModel(_productoService, _authService),
+                () => EsAdministrador);
 
             // Pantalla inicial
             PantallaActual = new VentaViewModel(_productoService, _ventaService, _impresoraTicketService,

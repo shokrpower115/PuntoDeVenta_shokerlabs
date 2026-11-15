@@ -43,6 +43,7 @@
                 <Button Content="Venta" Command="{Binding IrAVentaCommand}" Style="{StaticResource BotonMenu}"
                         Height="45" Margin="10,5" />
                 <Button Content="Administrador" Command="{Binding IrAAdministradorCommand}" Style="{StaticResource BotonMenu}"
+                        Visibility="{Binding EsAdministrador, Converter={StaticResource BooleanoAVisibilidadConverter}}"
                         Height="45" Margin="10,5" />
             </StackPanel>
 

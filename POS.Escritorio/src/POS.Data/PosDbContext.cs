@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using POS.Core.Models;
-using POS.Core.Seguridad;
 
 namespace POS.Data
 {
@@ -36,13 +35,39 @@ namespace POS.Data
             modelBuilder.Entity<ProductoSucursal>()
                 .HasKey(ps => new { ps.ProductoId, ps.SucursalId });
 
+            modelBuilder.Entity<Venta>()
+                .HasOne(v => v.CorteCaja)
+                .WithMany()
+                .HasForeignKey(v => v.CorteCajaId);
+
+            // Nombre de usuario único sin distinguir mayúsculas ("Admin" es lo mismo que "admin").
+            modelBuilder.Entity<Usuario>()
+                .Property(u => u.NombreUsuario)
+                .UseCollation("NOCASE");
+            modelBuilder.Entity<Usuario>()
+                .HasIndex(u => u.NombreUsuario)
+                .IsUnique();
+
+            // En un POS el historial (ventas, cortes, movimientos) nunca debe desaparecer
+            // porque se borró un usuario, un método de pago o una sucursal: ninguna relación
+            // borra en cascada, salvo las de "documento → sus partes".
+            foreach (var relacion in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
+            {
+                bool esParteDelDocumento =
+                    relacion.DeclaringEntityType.ClrType == typeof(VentaDetalle) && relacion.PrincipalEntityType.ClrType == typeof(Venta) ||
+                    relacion.DeclaringEntityType.ClrType == typeof(MovimientoCaja) && relacion.PrincipalEntityType.ClrType == typeof(CorteDeCaja) ||
+                    relacion.DeclaringEntityType.ClrType == typeof(ProductoSucursal) && relacion.PrincipalEntityType.ClrType == typeof(Producto);
+
+                relacion.DeleteBehavior = esParteDelDocumento ? DeleteBehavior.Cascade : DeleteBehavior.Restrict;
+            }
+
             // Datos iniciales del catálogo de métodos de pago.
             // Se insertan solos la primera vez que se crea la base de datos.
             modelBuilder.Entity<MetodoPago>().HasData(
-                new MetodoPago { Id = 1, Nombre = "Efectivo", Activo = true },
-                new MetodoPago { Id = 2, Nombre = "Tarjeta de crédito", Activo = true },
-                new MetodoPago { Id = 3, Nombre = "Tarjeta de débito", Activo = true },
-                new MetodoPago { Id = 4, Nombre = "Transferencia", Activo = true }
+                new MetodoPago { Id = 1, Nombre = "Efectivo", Tipo = TipoMetodoPago.Efectivo, Activo = true },
+                new MetodoPago { Id = 2, Nombre = "Tarjeta de crédito", Tipo = TipoMetodoPago.Tarjeta, Activo = true },
+                new MetodoPago { Id = 3, Nombre = "Tarjeta de débito", Tipo = TipoMetodoPago.Tarjeta, Activo = true },
+                new MetodoPago { Id = 4, Nombre = "Transferencia", Tipo = TipoMetodoPago.Transferencia, Activo = true }
             );
 
             modelBuilder.Entity<Sucursal>().HasData(
@@ -51,12 +76,17 @@ namespace POS.Data
                 new Sucursal { Id = 3, Nombre = "Sucursal Sur" }
             );
 
+            // Los hashes van como constantes (y no con HashPassword.Generar) porque HasData
+            // debe ser determinista: si cambian en cada compilación, cada migración nueva
+            // reescribe las contraseñas.
+            // Cajeros de demostración: contraseña "1234".
+            // El administrador inicial no va aquí: lo crea InicializadorBaseDatos.
             modelBuilder.Entity<Usuario>().HasData(
                  new Usuario
                  {
                      Id = 1,
                      NombreUsuario = "centro",
-                     PasswordHash = HashPassword.Generar("1234"),
+                     PasswordHash = "2ysu65SpAZMDqaBczOfJ0w==.FbzrKO0gw1x9k438UvVyLJPXafHqZx9P052GaD9aHKM=",
                      NombreCompleto = "Moisés",
                      Puesto = "Cajero",
                      Rol = RolUsuario.Cajero,
@@ -66,7 +96,7 @@ namespace POS.Data
                  {
                      Id = 2,
                      NombreUsuario = "norte",
-                     PasswordHash = HashPassword.Generar("1234"),
+                     PasswordHash = "J7JS3UEacFTKclq1dCVWvA==.dO8j6wgs7hFmnKJ3DO/IK/p7n+k5F17Z5tGv8xnnd5Q=",
                      NombreCompleto = "Moisés",
                      Puesto = "Cajero",
                      Rol = RolUsuario.Cajero,
@@ -76,7 +106,7 @@ namespace POS.Data
                  {
                      Id = 3,
                      NombreUsuario = "sur",
-                     PasswordHash = HashPassword.Generar("1234"),
+                     PasswordHash = "EzzYO4MDYuynJni/1CiPpQ==.f/ieFBawAvVHfSj+p6pQkKGn118/9IAJtwdm6sRqQe8=",
                      NombreCompleto = "Moisés",
                      Puesto = "Cajero",
                      Rol = RolUsuario.Cajero,
@@ -86,10 +116,10 @@ namespace POS.Data
 
             modelBuilder.Entity<CategoriaMovimientoCaja>().HasData(
                 new CategoriaMovimientoCaja { Id = 1, Nombre = "Fondo adicional / Cambio solicitado", Tipo = TipoMovimientoCaja.Entrada, Activo = true },
-                new CategoriaMovimientoCaja { Id = 2, Nombre = "Otro", Tipo = TipoMovimientoCaja.Entrada, Activo = true },
+                new CategoriaMovimientoCaja { Id = 2, Nombre = "Otro", Tipo = TipoMovimientoCaja.Entrada, RequiereDescripcion = true, Activo = true },
                 new CategoriaMovimientoCaja { Id = 3, Nombre = "Retiro por seguridad", Tipo = TipoMovimientoCaja.Retiro, Activo = true },
                 new CategoriaMovimientoCaja { Id = 4, Nombre = "Depósito bancario", Tipo = TipoMovimientoCaja.Retiro, Activo = true },
-                new CategoriaMovimientoCaja { Id = 5, Nombre = "Otro", Tipo = TipoMovimientoCaja.Retiro, Activo = true }
+                new CategoriaMovimientoCaja { Id = 5, Nombre = "Otro", Tipo = TipoMovimientoCaja.Retiro, RequiereDescripcion = true, Activo = true }
             );
         }
     }

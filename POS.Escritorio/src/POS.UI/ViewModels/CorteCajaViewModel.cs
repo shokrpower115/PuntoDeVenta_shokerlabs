@@ -1,5 +1,6 @@
 using POS.Core.Models;
 using POS.Core.Services;
+using Serilog;
 using System.Linq;
 using System;
 using System.Collections.ObjectModel;
@@ -182,13 +183,8 @@ namespace POS.UI.ViewModels
         {
             if (TurnoActual == null) return;
 
-            TotalEfectivo = await _ventaService.ObtenerTotalPorMetodoPagoAsync(
-                _sucursalId, TurnoActual.FechaApertura, DateTime.Now, "Efectivo");
-
-            TotalTarjeta = await _ventaService.ObtenerTotalPorMetodoPagoAsync(
-                _sucursalId, TurnoActual.FechaApertura, DateTime.Now, "Tarjeta de crédito")
-                + await _ventaService.ObtenerTotalPorMetodoPagoAsync(
-                _sucursalId, TurnoActual.FechaApertura, DateTime.Now, "Tarjeta de débito");
+            TotalEfectivo = await _ventaService.ObtenerTotalPorTipoPagoAsync(TurnoActual.Id, TipoMetodoPago.Efectivo);
+            TotalTarjeta = await _ventaService.ObtenerTotalPorTipoPagoAsync(TurnoActual.Id, TipoMetodoPago.Tarjeta);
 
             TotalVentasTurno = TotalEfectivo + TotalTarjeta; // Solo informativo, ya no se usa para la diferencia
         }
@@ -196,8 +192,7 @@ namespace POS.UI.ViewModels
         private async Task CerrarTurnoAsync()
         {
             if (TurnoActual == null) return;
-            await ActualizarTotalVentasAsync();
-            TurnoActual = await _corteCajaService.CerrarTurnoAsync(TurnoActual.Id, EfectivoFinal, TotalEfectivo, TotalTarjeta);
+            TurnoActual = await _corteCajaService.CerrarTurnoAsync(TurnoActual.Id, EfectivoFinal);
         }
 
         private async Task CargarCategoriasAsync()
@@ -220,7 +215,7 @@ namespace POS.UI.ViewModels
             }
             if (CategoriaEntradaSeleccionada == null)
             {
-                Mensaje = "Selecciona una categoría.";
+                Mensaje = "Selecciona una categorÃ­a.";
                 return;
             }
             if (MontoEntrada <= 0)
@@ -233,7 +228,7 @@ namespace POS.UI.ViewModels
             {
                 CorteCajaId = TurnoActual.Id,
                 CategoriaId = CategoriaEntradaSeleccionada.Id,
-                DescripcionOtro = CategoriaEntradaSeleccionada.Nombre == "Otro" ? DescripcionOtroEntrada : null,
+                DescripcionOtro = CategoriaEntradaSeleccionada.RequiereDescripcion ? DescripcionOtroEntrada : null,
                 Monto = MontoEntrada,
                 UsuarioId = _usuarioId
             };
@@ -253,7 +248,7 @@ namespace POS.UI.ViewModels
             {
                 CorteCajaId = TurnoActual.Id,
                 CategoriaId = CategoriaRetiroSeleccionada.Id,
-                DescripcionOtro = CategoriaRetiroSeleccionada.Nombre == "Otro" ? DescripcionOtroRetiro : null,
+                DescripcionOtro = CategoriaRetiroSeleccionada.RequiereDescripcion ? DescripcionOtroRetiro : null,
                 Monto = MontoRetiro,
                 UsuarioId = _usuarioId
             };
@@ -272,45 +267,45 @@ namespace POS.UI.ViewModels
         {
             MensajeError = string.Empty;
 
-            if (string.IsNullOrWhiteSpace(NombreUsuarioConfirmacion) || string.IsNullOrWhiteSpace(PasswordConfirmacion))
-            {
-                MensajeError = "Confirma tu usuario y contraseña.";
-                return;
-            }
-
-            // Paso 1: ¿el nombre de usuario escrito es el mismo que inició sesión?
-            if (!NombreUsuarioConfirmacion.Trim().Equals(_nombreUsuarioEsperado, StringComparison.OrdinalIgnoreCase))
-            {
-                MensajeError = "Debes confirmar con tu propio usuario, no el de otra persona.";
-                return;
-            }
-
-            // Paso 2: ¿la contraseña es correcta para ESE usuario?
-            var usuarioValidado = await _authService.LoginAsync(NombreUsuarioConfirmacion, PasswordConfirmacion);
-            if (usuarioValidado == null)
-            {
-                MensajeError = "Usuario o contraseña incorrectos.";
-                return;
-            }
-
             if (TurnoActual == null)
             {
                 MensajeError = "No hay un turno abierto para cerrar.";
                 return;
             }
 
-            // Validación ya pasó: aquí sigue la fórmula del corte (siguiente paso).
-            await ActualizarTotalVentasAsync();
-            var corteCerrado = await _corteCajaService.CerrarTurnoAsync(TurnoActual.Id, EfectivoFinal, TotalEfectivo, TotalTarjeta);
-            TurnoActual = corteCerrado;
+            if (string.IsNullOrWhiteSpace(NombreUsuarioConfirmacion) || string.IsNullOrWhiteSpace(PasswordConfirmacion))
+            {
+                MensajeError = "Confirma tu usuario y contraseÃ±a.";
+                return;
+            }
 
-            var desglose = await _ventaService.ObtenerDesglosePorMetodoPagoAsync(_sucursalId, corteCerrado.FechaApertura, corteCerrado.FechaCierre ?? DateTime.Now);
+            var usuarioValidado = await _authService.LoginAsync(NombreUsuarioConfirmacion, PasswordConfirmacion);
+            if (usuarioValidado == null)
+            {
+                MensajeError = "Usuario o contraseÃ±a incorrectos.";
+                return;
+            }
+
+            // Solo quien abriÃ³ el turno, o un administrador, puede cerrarlo.
+            if (usuarioValidado.Id != TurnoActual.UsuarioId && !usuarioValidado.EsAdministrador)
+            {
+                MensajeError = "Solo quien abriÃ³ el turno o un administrador puede realizar el corte.";
+                return;
+            }
+
+            // Los totales de ventas los calcula el servicio a partir de las ventas del turno.
+            var corteCerrado = await _corteCajaService.CerrarTurnoAsync(TurnoActual.Id, EfectivoFinal);
+            TurnoActual = corteCerrado;
+            Log.Information("Corte {CorteId} realizado por {Usuario}. Diferencia: {Diferencia}",
+                corteCerrado.Id, usuarioValidado.NombreUsuario, corteCerrado.Diferencia);
+
+            var desglose = await _ventaService.ObtenerDesglosePorMetodoPagoAsync(corteCerrado.Id);
             var movimientos = await _corteCajaService.ObtenerMovimientosDelTurnoAsync(corteCerrado.Id);
 
             var ticket = new TicketCorte
             {
                 CorteCajaId = corteCerrado.Id,
-                NombreCajero = _nombreUsuarioEsperado,
+                NombreCajero = corteCerrado.Usuario?.NombreCompleto ?? _nombreUsuarioEsperado,
                 FechaApertura = corteCerrado.FechaApertura,
                 FechaCierre = corteCerrado.FechaCierre ?? DateTime.Now,
                 EfectivoInicial = corteCerrado.EfectivoInicial,
@@ -323,7 +318,18 @@ namespace POS.UI.ViewModels
                 Diferencia = corteCerrado.Diferencia
             };
 
-            await _impresoraTicketService.ImprimirCorteAsync(ticket, _datosNegocio);
+            // El turno ya quedÃ³ cerrado: un error de impresiÃ³n no debe impedir cerrar la sesiÃ³n.
+            try
+            {
+                await _impresoraTicketService.ImprimirCorteAsync(ticket, _datosNegocio);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "No se pudo imprimir el ticket del corte {CorteId}", corteCerrado.Id);
+                System.Windows.MessageBox.Show(
+                    $"El corte {corteCerrado.Id} quedÃ³ registrado, pero no se pudo imprimir el ticket: {ex.Message}",
+                    "ImpresiÃ³n", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
 
             MensajeError = "Corte realizado correctamente.";
 

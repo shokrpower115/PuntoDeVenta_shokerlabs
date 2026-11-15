@@ -15,7 +15,7 @@ namespace POS.Data.Sqlite
 
             return await db.Productos
                 .Include(p => p.StockPorSucursal.Where(s => s.SucursalId == sucursalId))
-                .Where(p => p.StockPorSucursal.Any(s => s.SucursalId == sucursalId))
+                .Where(p => p.Activo && p.StockPorSucursal.Any(s => s.SucursalId == sucursalId))
                 .ToListAsync();
         }
 
@@ -25,32 +25,16 @@ namespace POS.Data.Sqlite
 
             return await db.Productos
                 .Include(p => p.StockPorSucursal.Where(s => s.SucursalId == sucursalId))
-                .FirstOrDefaultAsync(p => p.CodigoBarras == codigoBarras);
-        }
-
-        public async Task DescontarStockAsync(int productoId, int cantidad, int sucursalId)
-        {
-            using var db = new PosDbContext(RutaBaseDatos.Obtener());
-
-            var stock = await db.ProductoSucursales
-                .FirstOrDefaultAsync(s => s.ProductoId == productoId && s.SucursalId == sucursalId);
-
-            if (stock != null)
-            {
-                stock.Stock -= cantidad;
-                await db.SaveChangesAsync();
-            }
+                .FirstOrDefaultAsync(p => p.Activo && p.CodigoBarras == codigoBarras);
         }
 
         public async Task EliminarAsync(int productoId)
         {
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
-            var producto = await db.Productos
-                .Include(p => p.StockPorSucursal)
-                .FirstAsync(p => p.Id == productoId);
-
-            db.Productos.Remove(producto);
+            // Las ventas históricas guardan el ProductoId: el producto se desactiva, no se borra.
+            var producto = await db.Productos.FirstAsync(p => p.Id == productoId);
+            producto.Activo = false;
             await db.SaveChangesAsync();
         }
 
@@ -61,6 +45,7 @@ namespace POS.Data.Sqlite
             return await db.Productos
                 .Include(p => p.StockPorSucursal)
                     .ThenInclude(s => s.Sucursal)
+                .Where(p => p.Activo)
                 .ToListAsync();
         }
 

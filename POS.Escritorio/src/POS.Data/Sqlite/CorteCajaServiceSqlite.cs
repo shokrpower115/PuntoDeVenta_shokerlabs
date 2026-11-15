@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using POS.Core;
 using POS.Core.Models;
 using POS.Core.Services;
 
@@ -12,6 +13,10 @@ namespace POS.Data.Sqlite
         public async Task<CorteDeCaja> AbrirTurnoAsync(int sucursalId, int usuarioId, decimal efectivoInicial)
         {
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
+
+            // Una sola caja por sucursal: no puede haber dos turnos abiertos a la vez.
+            if (await db.CortesCaja.AnyAsync(c => c.SucursalId == sucursalId && !c.Cerrado))
+                throw new ReglaNegocioException("Ya hay un turno abierto en esta sucursal.");
 
             var corte = new CorteDeCaja
             {
@@ -32,23 +37,34 @@ namespace POS.Data.Sqlite
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
             return await db.CortesCaja
+                .Include(c => c.Usuario)
                 .Include(c => c.Movimientos)
                     .ThenInclude(m => m.Categoria)
                 .FirstOrDefaultAsync(c => c.SucursalId == sucursalId && !c.Cerrado);
         }
 
-        public async Task<CorteDeCaja> CerrarTurnoAsync(int corteId, decimal efectivoFinal, decimal totalVentasEfectivo, decimal totalVentasTarjeta)
+        public async Task<CorteDeCaja> CerrarTurnoAsync(int corteId, decimal efectivoFinal)
         {
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
             var corte = await db.CortesCaja
+                .Include(c => c.Usuario)
                 .Include(c => c.Movimientos)
                     .ThenInclude(m => m.Categoria)
                 .FirstAsync(c => c.Id == corteId);
 
+            if (corte.Cerrado)
+                throw new ReglaNegocioException("Este turno ya fue cerrado.");
+
+            // SQLite no suma decimales del lado de la base, por eso se suma en memoria.
+            var ventas = await db.Ventas
+                .Where(v => v.CorteCajaId == corteId)
+                .Select(v => new { v.Total, v.MetodoPago!.Tipo })
+                .ToListAsync();
+
             corte.EfectivoFinal = efectivoFinal;
-            corte.TotalVentasEfectivo = totalVentasEfectivo;
-            corte.TotalVentasTarjeta = totalVentasTarjeta;
+            corte.TotalVentasEfectivo = ventas.Where(v => v.Tipo == TipoMetodoPago.Efectivo).Sum(v => v.Total);
+            corte.TotalVentasTarjeta = ventas.Where(v => v.Tipo == TipoMetodoPago.Tarjeta).Sum(v => v.Total);
             corte.FechaCierre = DateTime.Now;
             corte.Cerrado = true;
 

@@ -14,6 +14,11 @@ namespace POS.Core.Models
         public int UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
 
+        // Turno (corte de caja) en el que se cobró la venta. Es nullable solo por las
+        // ventas registradas antes de que existiera esta columna.
+        public int? CorteCajaId { get; set; }
+        public CorteDeCaja? CorteCaja { get; set; }
+
         public int MetodoPagoId { get; set; }
         public MetodoPago? MetodoPago { get; set; }
 

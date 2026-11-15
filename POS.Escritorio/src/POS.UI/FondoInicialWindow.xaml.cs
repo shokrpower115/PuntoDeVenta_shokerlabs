@@ -35,7 +35,7 @@ namespace POS.UI
                 !decimal.TryParse(TxtMonto.Text, NumberStyles.Number | NumberStyles.AllowCurrencySymbol, CultureInfo.CurrentCulture, out decimal monto) ||
                 monto < 0)
             {
-                MessageBox.Show("Escribe un monto válido mayor o igual a 0.", "Fondo inicial", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Escribe un monto vÃ¡lido mayor o igual a 0.", "Fondo inicial", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 

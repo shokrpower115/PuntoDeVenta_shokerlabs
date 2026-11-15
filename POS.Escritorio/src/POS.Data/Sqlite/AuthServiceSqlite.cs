@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using POS.Core;
 using POS.Core.Models;
 using POS.Core.Seguridad;
 using POS.Core.Services;
@@ -14,9 +15,10 @@ namespace POS.Data.Sqlite
         {
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
+            // La columna usa collation NOCASE: la comparación ya ignora mayúsculas.
             var usuario = await db.Usuarios
                 .Include(u => u.Sucursal)
-                .FirstOrDefaultAsync(u => u.NombreUsuario.ToLower() == nombreUsuario.ToLower());
+                .FirstOrDefaultAsync(u => u.NombreUsuario == nombreUsuario.Trim());
 
             if (usuario == null) return null;
 
@@ -37,11 +39,26 @@ namespace POS.Data.Sqlite
         {
             using var db = new PosDbContext(RutaBaseDatos.Obtener());
 
+            usuario.NombreUsuario = usuario.NombreUsuario.Trim();
+            if (await db.Usuarios.AnyAsync(u => u.NombreUsuario == usuario.NombreUsuario))
+                throw new ReglaNegocioException($"Ya existe un usuario llamado '{usuario.NombreUsuario}'.");
+
             usuario.PasswordHash = HashPassword.Generar(passwordTextoPlano);
 
             db.Usuarios.Add(usuario);
             await db.SaveChangesAsync();
             return usuario;
+        }
+
+        public async Task CambiarPasswordAsync(int usuarioId, string passwordNuevoTextoPlano)
+        {
+            using var db = new PosDbContext(RutaBaseDatos.Obtener());
+
+            var usuario = await db.Usuarios.FirstAsync(u => u.Id == usuarioId);
+            usuario.PasswordHash = HashPassword.Generar(passwordNuevoTextoPlano);
+            usuario.DebeCambiarPassword = false;
+
+            await db.SaveChangesAsync();
         }
     }
 }

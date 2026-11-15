@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace POS.Core.Models
 {
@@ -12,7 +12,7 @@ namespace POS.Core.Models
         public int CategoriaId { get; set; }
         public CategoriaMovimientoCaja? Categoria { get; set; }
 
-        public string? DescripcionOtro { get; set; } // Solo se llena si Categoria.Nombre == "Otro"
+        public string? DescripcionOtro { get; set; } // Solo se llena si Categoria.RequiereDescripcion
 
         public decimal Monto { get; set; }
         public DateTime Fecha { get; set; } = DateTime.Now;

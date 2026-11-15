@@ -1,8 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using POS.Core;
 using POS.Core.Models;
 using POS.Core.Services;
+using Serilog;
 using System;
 
 namespace POS.UI.ViewModels
@@ -188,12 +190,23 @@ namespace POS.UI.ViewModels
                 SucursalId = _sucursalId,
                 UsuarioId = _usuarioId,
                 Total = Total,
+                PagoCon = cobroViewModel.MontoPagado,
                 Detalles = Carrito.ToList()
             };
 
-            venta = await _ventaService.RegistrarVentaAsync(venta);
-            foreach (var detalle in Carrito)
-                await _productoService.DescontarStockAsync(detalle.ProductoId, detalle.Cantidad, _sucursalId);
+            // Registra la venta y descuenta el stock en una sola transacción.
+            // Si no hay stock suficiente (por ejemplo, alguien lo modificó mientras
+            // se armaba el carrito) no se guarda nada y el carrito se conserva.
+            try
+            {
+                venta = await _ventaService.RegistrarVentaAsync(venta);
+            }
+            catch (ReglaNegocioException ex)
+            {
+                Mensaje = ex.Message;
+                await CargarProductosAsync();
+                return;
+            }
 
             var ticket = new TicketVenta
             {
@@ -202,21 +215,32 @@ namespace POS.UI.ViewModels
                 NombreCajero = _nombreCajero,
                 Detalles = venta.Detalles,
                 Total = venta.Total,
-                PagoCon = cobroViewModel.MontoPagado // ← ahora sí es el monto real, no el total
+                PagoCon = venta.PagoCon
             };
 
-            await _impresoraTicketService.ImprimirAsync(ticket, _datosNegocio);
-
+            // La venta ya quedó guardada: el carrito se limpia antes de imprimir para que
+            // un error de impresión no deje el carrito lleno (y se cobre dos veces).
             Carrito.Clear();
             Total = 0;
             Mensaje = "Venta registrada correctamente.";
+
+            try
+            {
+                await _impresoraTicketService.ImprimirAsync(ticket, _datosNegocio);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "No se pudo imprimir el ticket de la venta {Folio}", venta.Id);
+                Mensaje = $"Venta {venta.Id} registrada, pero no se pudo imprimir el ticket: {ex.Message}";
+            }
+
             await CargarProductosAsync();
 
             // -------------- CHECK ACUMULACION EFECTIVO --------------
             var turno = await _corteCajaService.ObtenerTurnoAbiertoAsync(_sucursalId);
             if (turno != null)
             {
-                var totalEfectivo = await _ventaService.ObtenerTotalPorMetodoPagoAsync(_sucursalId, turno.FechaApertura, DateTime.Now, "Efectivo");
+                var totalEfectivo = await _ventaService.ObtenerTotalPorTipoPagoAsync(turno.Id, TipoMetodoPago.Efectivo);
                 if (totalEfectivo > UMBRAL_ACUMULACION_EFECTIVO)
                 {
                     // Notificar y ofrecer abrir modal RETIRO

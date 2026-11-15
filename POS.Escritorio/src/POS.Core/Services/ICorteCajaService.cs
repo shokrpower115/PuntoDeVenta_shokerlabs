@@ -7,8 +7,12 @@ namespace POS.Core.Services
     public interface ICorteCajaService
     {
         Task<CorteDeCaja> AbrirTurnoAsync(int sucursalId, int usuarioId , decimal efectivoInicial);
+
+        // Hay una sola caja por sucursal: devuelve el turno abierto (con su Usuario) o null.
         Task<CorteDeCaja?> ObtenerTurnoAbiertoAsync(int sucursalId);
-        Task<CorteDeCaja> CerrarTurnoAsync(int corteId, decimal efectivoFinal, decimal totalVentasEfectivo, decimal totalVentasTarjeta);
+
+        // Los totales de ventas se calculan aquí, a partir de las ventas ligadas al turno.
+        Task<CorteDeCaja> CerrarTurnoAsync(int corteId, decimal efectivoFinal);
 
         // Nuevos:
         Task<List<CategoriaMovimientoCaja>> ObtenerCategoriasActivasAsync(TipoMovimientoCaja tipo);
