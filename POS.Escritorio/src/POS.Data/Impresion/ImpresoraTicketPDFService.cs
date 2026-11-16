@@ -20,6 +20,12 @@ namespace POS.Data.Impresion
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
+        private static void EncabezadoLogo(ColumnDescriptor col, DatosNegocio negocio)
+        {
+            if (negocio.Logo is { Length: > 0 })
+                col.Item().AlignCenter().MaxHeight(60).Image(negocio.Logo).FitArea();
+        }
+
         public Task ImprimirAsync(TicketVenta ticket, DatosNegocio negocio)
         {
             var carpeta = Path.Combine(
@@ -37,6 +43,7 @@ namespace POS.Data.Impresion
 
                     pagina.Content().Column(col =>
                     {
+                        EncabezadoLogo(col, negocio);
                         col.Item().AlignCenter().Text(negocio.Nombre).Bold().FontSize(13);
                         col.Item().AlignCenter().Text(negocio.Direccion);
                         col.Item().AlignCenter().Text(negocio.Telefono);
@@ -74,7 +81,8 @@ namespace POS.Data.Impresion
                         col.Item().AlignRight().Text($"PAGO CON: {ticket.PagoCon:C}");
                         col.Item().AlignRight().Text($"SU CAMBIO: {ticket.Cambio:C}");
 
-                        col.Item().PaddingTop(10).AlignCenter().Text("GRACIAS POR SU COMPRA");
+                        col.Item().PaddingTop(10).AlignCenter().Text(
+                            string.IsNullOrWhiteSpace(negocio.MensajeTicket) ? DatosNegocio.MensajeTicketPorDefecto : negocio.MensajeTicket);
                         if (!string.IsNullOrWhiteSpace(negocio.SitioWeb))
                             col.Item().AlignCenter().Text(negocio.SitioWeb.ToUpper());
                     });
@@ -105,6 +113,7 @@ namespace POS.Data.Impresion
 
                     pagina.Content().Column(col =>
                     {
+                        EncabezadoLogo(col, negocio);
                         col.Item().AlignCenter().Text(negocio.Nombre).Bold().FontSize(13);
                         col.Item().AlignCenter().Text("CORTE DE CAJA").Bold().FontSize(11);
 

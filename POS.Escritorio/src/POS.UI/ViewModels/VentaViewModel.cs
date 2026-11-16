@@ -42,15 +42,33 @@ namespace POS.UI.ViewModels
         public decimal Total
         {
             get => _total;
-            private set => SetProperty(ref _total, value);
+            private set
+            {
+                if (SetProperty(ref _total, value))
+                    OnPropertyChanged(nameof(ArticulosEnCarrito));
+            }
         }
 
+        public int ArticulosEnCarrito => Carrito.Sum(d => d.Cantidad);
+
+        // Mensaje = avisos/advertencias; MensajeExito = confirmaciones (venta registrada...).
         private string _mensaje = string.Empty;
         public string Mensaje
         {
             get => _mensaje;
             set => SetProperty(ref _mensaje, value);
         }
+
+        private string _mensajeExito = string.Empty;
+        public string MensajeExito
+        {
+            get => _mensajeExito;
+            set => SetProperty(ref _mensajeExito, value);
+        }
+
+        // Enter en el buscador. Pensado para el lector de código de barras, que "teclea"
+        // el código y un Enter: si el código coincide exacto, el producto entra directo al carrito.
+        public RelayCommand AgregarDesdeBusquedaCommand { get; }
 
         private MetodoPago? _metodoPagoSeleccionado;
         public MetodoPago? MetodoPagoSeleccionado
@@ -86,6 +104,7 @@ namespace POS.UI.ViewModels
             _nombreUsuario = nombreUsuario;
 
             AgregarAlCarritoCommand = new RelayCommand(async () => await AgregarAlCarritoAsync());
+            AgregarDesdeBusquedaCommand = new RelayCommand(async () => await AgregarDesdeBusquedaAsync());
             ConsultarOtrasSucursalesCommand = new RelayCommand(async () => await ConsultarOtrasSucursalesAsync());
             CobrarCommand = new RelayCommand(async () => await CobrarAsync());
             AbrirCorteCajaCommand = new RelayCommand(() => AbrirCorteCaja());
@@ -105,9 +124,36 @@ namespace POS.UI.ViewModels
             FiltrarProductos();
         }
 
+        private async Task AgregarDesdeBusquedaAsync()
+        {
+            var texto = TextoBusqueda.Trim();
+            if (texto.Length == 0) return;
+
+            var porCodigo = _productosCompletos.FirstOrDefault(p =>
+                string.Equals(p.CodigoBarras, texto, StringComparison.OrdinalIgnoreCase));
+            var producto = porCodigo
+                ?? (ProductosDisponibles.Count == 1 ? ProductosDisponibles[0] : ProductoSeleccionado);
+
+            if (producto == null)
+            {
+                Mensaje = ProductosDisponibles.Count == 0
+                    ? $"No se encontró ningún producto con «{texto}»."
+                    : "Hay varios resultados: selecciona uno de la lista.";
+                return;
+            }
+
+            ProductoSeleccionado = producto;
+            await AgregarAlCarritoAsync();
+
+            // Listo para el siguiente escaneo.
+            if (string.IsNullOrEmpty(Mensaje))
+                TextoBusqueda = string.Empty;
+        }
+
         private async Task AgregarAlCarritoAsync()
         {
             if (ProductoSeleccionado == null) return;
+            MensajeExito = string.Empty;
 
             int stockDisponible = ProductoSeleccionado.StockPorSucursal.FirstOrDefault()?.Stock ?? 0;
 
@@ -169,6 +215,7 @@ namespace POS.UI.ViewModels
 
         private async Task CobrarAsync()
         {
+            MensajeExito = string.Empty;
             if (!Carrito.Any())
             {
                 Mensaje = "Agrega al menos un producto al carrito.";
@@ -222,7 +269,11 @@ namespace POS.UI.ViewModels
             // un error de impresión no deje el carrito lleno (y se cobre dos veces).
             Carrito.Clear();
             Total = 0;
-            Mensaje = "Venta registrada correctamente.";
+            Mensaje = string.Empty;
+            var cambio = venta.PagoCon - venta.Total;
+            MensajeExito = cambio > 0
+                ? $"Venta {venta.Id} registrada. Cambio a entregar: {cambio:C}"
+                : $"Venta {venta.Id} registrada.";
 
             try
             {
@@ -237,30 +288,23 @@ namespace POS.UI.ViewModels
             await CargarProductosAsync();
 
             // -------------- CHECK ACUMULACION EFECTIVO --------------
+            // Se compara el efectivo que físicamente debería haber en el cajón (no solo lo vendido),
+            // así la alerta deja de salir en cuanto el cajero hace un retiro.
             var turno = await _corteCajaService.ObtenerTurnoAbiertoAsync(_sucursalId);
             if (turno != null)
             {
-                var totalEfectivo = await _ventaService.ObtenerTotalPorTipoPagoAsync(turno.Id, TipoMetodoPago.Efectivo);
-                if (totalEfectivo > UMBRAL_ACUMULACION_EFECTIVO)
+                var ventasEfectivo = await _ventaService.ObtenerTotalPorTipoPagoAsync(turno.Id, TipoMetodoPago.Efectivo);
+                var efectivoEnCaja = turno.EfectivoInicial + ventasEfectivo + turno.TotalEntradas - turno.TotalRetiros;
+                if (efectivoEnCaja > UMBRAL_ACUMULACION_EFECTIVO)
                 {
-                    // Notificar y ofrecer abrir modal RETIRO
                     var result = System.Windows.MessageBox.Show(
-                        $"Acumulaste {totalEfectivo:C} en efectivo desde el inicio del turno. ¿Deseas registrar un retiro ahora?",
+                        $"Hay aproximadamente {efectivoEnCaja:C} en efectivo en la caja. ¿Deseas registrar un retiro ahora?",
                         "Alerta: Acumulación de efectivo",
                         System.Windows.MessageBoxButton.YesNo,
                         System.Windows.MessageBoxImage.Warning);
 
                     if (result == System.Windows.MessageBoxResult.Yes)
-                    {
-                        var corteVm = new CorteCajaViewModel(_corteCajaService, _ventaService, _authService,
-                                                                _impresoraTicketService, _datosNegocio, _sucursalId, _usuarioId, _nombreUsuario);
-                        var corteWindow = new CorteCajaWindow(corteVm)
-                        {
-                            Owner = System.Windows.Application.Current.MainWindow
-                        };
-                        corteWindow.ShowDialog();
-                        // El usuario puede usar RegistrarRetiro dentro del corteVm
-                    }
+                        AbrirRetiroEfectivo();
                 }
             }
         }
@@ -307,7 +351,7 @@ namespace POS.UI.ViewModels
 
             bool? resultado = movimientoWindow.ShowDialog();
             if (resultado == true)
-                Mensaje = "Movimiento de caja registrado correctamente.";
+                MensajeExito = "Movimiento de caja registrado correctamente.";
         }
 
         private void AbrirInventario()

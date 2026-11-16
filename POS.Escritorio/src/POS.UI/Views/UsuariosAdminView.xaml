@@ -2,54 +2,74 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="320"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <StackPanel Grid.Column="0" Margin="0,0,15,0">
-            <Button Content="← Volver" Command="{Binding VolverCommand}" Style="{StaticResource BotonPrimario}"
-                    HorizontalAlignment="Left" Padding="15,5" Margin="0,0,0,15"/>
-
-            <TextBlock Text="Nuevo usuario" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
-
-            <TextBlock Text="Nombre de usuario (login):" Margin="0,5,0,3"/>
-            <TextBox Text="{Binding NuevoNombreUsuario, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
-
-            <TextBlock Text="Contraseña:" Margin="0,10,0,3"/>
-            <TextBox Text="{Binding NuevoPassword, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
-
-            <TextBlock Text="Nombre completo:" Margin="0,10,0,3"/>
-            <TextBox Text="{Binding NuevoNombreCompleto, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
-
-            <TextBlock Text="Rol:" Margin="0,10,0,3"/>
-            <ComboBox ItemsSource="{Binding RolesDisponibles}" SelectedItem="{Binding NuevoRol}" Padding="5"/>
-
-            <TextBlock Text="Sucursal:" Margin="0,10,0,3"/>
-            <ComboBox ItemsSource="{Binding Sucursales}" SelectedValuePath="Key" DisplayMemberPath="Value"
-                      SelectedValue="{Binding NuevaSucursalId}" Padding="5"/>
-
-            <Button Content="Crear usuario" Command="{Binding CrearUsuarioCommand}" Style="{StaticResource BotonAccento}"
-                    Height="40" Margin="0,15,0,0"/>
-
-            <TextBlock Text="{Binding Mensaje}" Foreground="DarkOrange" Margin="0,10,0,0" TextWrapping="Wrap"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <Button Style="{StaticResource BotonFantasma}" Command="{Binding VolverCommand}" HorizontalAlignment="Left" Margin="-10,0,0,8">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Icono}" Text="&#xE72B;" Margin="0,0,8,0" FontSize="12"/>
+                    <TextBlock Text="Administrador"/>
+                </StackPanel>
+            </Button>
+            <TextBlock Text="Usuarios" Style="{StaticResource TextoTitulo}"/>
         </StackPanel>
 
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="340"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Row="0" Text="Usuarios existentes" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+            <Border Grid.Column="0" Style="{StaticResource Tarjeta}" VerticalAlignment="Top">
+                <StackPanel>
+                    <TextBlock Text="Nuevo usuario" Style="{StaticResource TextoSubtitulo}" Margin="0,0,0,16"/>
 
-            <DataGrid Grid.Row="1" ItemsSource="{Binding Usuarios}" AutoGenerateColumns="False" IsReadOnly="True">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Usuario" Binding="{Binding NombreUsuario}" Width="*"/>
-                    <DataGridTextColumn Header="Nombre" Binding="{Binding NombreCompleto}" Width="*"/>
-                    <DataGridTextColumn Header="Rol" Binding="{Binding Rol}" Width="100"/>
-                </DataGrid.Columns>
-            </DataGrid>
+                    <TextBlock Text="Nombre completo" Style="{StaticResource TextoEtiqueta}"/>
+                    <TextBox Text="{Binding NuevoNombreCompleto, UpdateSourceTrigger=PropertyChanged}" Tag="Como aparecerá en tickets" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="Usuario para iniciar sesión *" Style="{StaticResource TextoEtiqueta}"/>
+                    <TextBox Text="{Binding NuevoNombreUsuario, UpdateSourceTrigger=PropertyChanged}" Tag="Ej. maria" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="Contraseña *" Style="{StaticResource TextoEtiqueta}"/>
+                    <TextBox Text="{Binding NuevoPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="Rol" Style="{StaticResource TextoEtiqueta}"/>
+                    <ComboBox ItemsSource="{Binding RolesDisponibles}" SelectedItem="{Binding NuevoRol}" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="Sucursal" Style="{StaticResource TextoEtiqueta}"/>
+                    <ComboBox ItemsSource="{Binding Sucursales}" SelectedValuePath="Key" DisplayMemberPath="Value"
+                              SelectedValue="{Binding NuevaSucursalId}" Margin="0,0,0,18"/>
+
+                    <Button Content="Crear usuario" Command="{Binding CrearUsuarioCommand}" Style="{StaticResource BotonPrimario}" Height="44"/>
+
+                    <Border Style="{StaticResource AvisoAdvertencia}" Margin="0,14,0,0"
+                            Visibility="{Binding Mensaje, Converter={StaticResource TextoNoVacioAVisibilidad}}">
+                        <TextBlock Text="{Binding Mensaje}" Foreground="{StaticResource BrushAdvertencia}" TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource Tarjeta}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Usuarios registrados" Style="{StaticResource TextoSubtitulo}" Margin="20,16"/>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding Usuarios}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="NOMBRE" Binding="{Binding NombreCompleto}" Width="*"/>
+                            <DataGridTextColumn Header="USUARIO" Binding="{Binding NombreUsuario}" Width="140"/>
+                            <DataGridTextColumn Header="ROL" Binding="{Binding Rol}" Width="130"/>
+                            <DataGridTextColumn Header="SUCURSAL" Binding="{Binding Sucursal.Nombre}" Width="150"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
         </Grid>
     </Grid>
 </UserControl>

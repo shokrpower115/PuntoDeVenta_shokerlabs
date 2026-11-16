@@ -1,28 +1,36 @@
 ﻿<Window x:Class="POS.UI.InventarioConsultaWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Inventario" Width="600" Height="600"
-        WindowStartupLocation="CenterOwner"
-        Background="{StaticResource BrushFondo}">
-    <Grid Margin="20">
+        Title="Inventario" Width="760" Height="640"
+        WindowStartupLocation="CenterOwner" Style="{StaticResource VentanaBase}">
+    <Grid Margin="28">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Inventario de la sucursal" FontSize="20" FontWeight="Bold" Margin="0,0,0,15"/>
+        <Grid Grid.Row="0" Margin="0,0,0,18">
+            <StackPanel>
+                <TextBlock Text="Inventario de la sucursal" Style="{StaticResource TextoTitulo}"/>
+                <TextBlock Text="Existencias actuales de esta sucursal. Solo consulta." Style="{StaticResource TextoSecundario}" Margin="0,4,0,0"/>
+            </StackPanel>
+            <Button Command="{Binding RecargarCommand}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Icono}" Text="&#xE72C;" Margin="0,0,8,0"/>
+                    <TextBlock Text="Actualizar"/>
+                </StackPanel>
+            </Button>
+        </Grid>
 
-        <Button Grid.Row="1" Content="Recargar" Command="{Binding RecargarCommand}" Style="{StaticResource BotonPrimario}"
-                HorizontalAlignment="Left" Padding="15,6" Margin="0,0,0,15"/>
-
-        <DataGrid Grid.Row="2" ItemsSource="{Binding Productos}" AutoGenerateColumns="False" IsReadOnly="True">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
-                <DataGridTextColumn Header="Código de barras" Binding="{Binding CodigoBarras}" Width="150"/>
-                <DataGridTextColumn Header="Precio" Binding="{Binding Precio, StringFormat=C}" Width="100"/>
-                <DataGridTextColumn Header="Stock" Binding="{Binding StockPorSucursal[0].Stock, FallbackValue=0}" Width="80"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Border Grid.Row="1" Style="{StaticResource Tarjeta}" Padding="0">
+            <DataGrid ItemsSource="{Binding Productos}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="PRODUCTO" Binding="{Binding Nombre}" Width="*"/>
+                    <DataGridTextColumn Header="CÓDIGO" Binding="{Binding CodigoBarras}" Width="150"/>
+                    <DataGridTextColumn Header="PRECIO" Binding="{Binding Precio, StringFormat=C}" Width="100"/>
+                    <DataGridTextColumn Header="STOCK" Binding="{Binding StockPorSucursal[0].Stock, FallbackValue=0}" Width="80"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
     </Grid>
 </Window>

@@ -1,23 +1,27 @@
 ﻿<Window x:Class="POS.UI.DisponibilidadWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Disponibilidad en otras sucursales" Width="420" Height="350"
-        WindowStartupLocation="CenterOwner"
-        Background="{StaticResource BrushFondo}">
-    <Grid Margin="15">
+        Title="Disponibilidad en otras sucursales" Width="480" Height="420"
+        WindowStartupLocation="CenterOwner" Style="{StaticResource VentanaBase}">
+    <Grid Margin="28">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="{Binding NombreProductoConsultado, StringFormat='Disponibilidad de: {0}'}"
-                   FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,18">
+            <TextBlock Text="Otras sucursales" Style="{StaticResource TextoTitulo}"/>
+            <TextBlock Text="{Binding NombreProductoConsultado, StringFormat='Existencias de «{0}»'}" Style="{StaticResource TextoSecundario}"
+                       Margin="0,4,0,0"/>
+        </StackPanel>
 
-        <DataGrid Grid.Row="1" ItemsSource="{Binding DisponibilidadOtrasSucursales}" AutoGenerateColumns="False" IsReadOnly="True">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Sucursal" Binding="{Binding NombreSucursal}" Width="*"/>
-                <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="80"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Border Grid.Row="1" Style="{StaticResource Tarjeta}" Padding="0">
+            <DataGrid ItemsSource="{Binding DisponibilidadOtrasSucursales}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="SUCURSAL" Binding="{Binding NombreSucursal}" Width="*"/>
+                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="90"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
     </Grid>
 </Window>

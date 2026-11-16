@@ -1,4 +1,4 @@
-using POS.Core.Models;
+﻿using POS.Core.Models;
 using POS.Core.Services;
 
 namespace POS.UI.ViewModels
@@ -14,9 +14,11 @@ namespace POS.UI.ViewModels
         private readonly DatosNegocio _datosNegocio;
         private readonly IAuthService _authService;
         private readonly IMetodoPagoService _metodoPagoService;
+        private readonly IConfiguracionNegocioService _configuracionService;
 
         // Ahora viene del login, ya no está fijo.
         public int SucursalActualId { get; }
+        public string NombreSucursal { get; }
         public string NombreUsuarioActual { get; }
         public string PuestoActual { get; }
         public int UsuarioIdActual { get; }
@@ -29,8 +31,19 @@ namespace POS.UI.ViewModels
         public ViewModelBase PantallaActual
         {
             get => _pantallaActual;
-            set => SetProperty(ref _pantallaActual, value);
+            set
+            {
+                if (SetProperty(ref _pantallaActual, value))
+                {
+                    OnPropertyChanged(nameof(EnVenta));
+                    OnPropertyChanged(nameof(EnAdministrador));
+                }
+            }
         }
+
+        // Marcan la sección activa en el menú lateral.
+        public bool EnVenta => PantallaActual is VentaViewModel;
+        public bool EnAdministrador => PantallaActual is AdministradorViewModel;
 
         public event Action? SesionCerrada;
         public RelayCommand CerrarSesionCommand { get; }
@@ -41,8 +54,10 @@ namespace POS.UI.ViewModels
         public MainViewModel(IProductoService productoService, IVentaService ventaService,
               ICorteCajaService corteCajaService, IImpresoraTicketService impresoraTicketService,
               IMetodoPagoService metodoPagoService, IAuthService authService,
+              IConfiguracionNegocioService configuracionService,
               DatosNegocio datosNegocio, Usuario usuarioActual)
         {
+            _configuracionService = configuracionService;
             _productoService = productoService;
             _ventaService = ventaService;
             _corteCajaService = corteCajaService;
@@ -52,6 +67,7 @@ namespace POS.UI.ViewModels
             _authService = authService;
 
             SucursalActualId = usuarioActual.SucursalId;
+            NombreSucursal = usuarioActual.Sucursal?.Nombre ?? string.Empty;
             NombreUsuarioActual = usuarioActual.NombreCompleto;
             UsuarioIdActual = usuarioActual.Id;
             NombreUsuarioLogin = usuarioActual.NombreUsuario;
@@ -67,7 +83,7 @@ namespace POS.UI.ViewModels
 
             
             IrAAdministradorCommand = new RelayCommand(
-                () => PantallaActual = new AdministradorViewModel(_productoService, _authService),
+                () => PantallaActual = new AdministradorViewModel(_productoService, _authService, _configuracionService, _datosNegocio),
                 () => EsAdministrador);
 
             // Pantalla inicial

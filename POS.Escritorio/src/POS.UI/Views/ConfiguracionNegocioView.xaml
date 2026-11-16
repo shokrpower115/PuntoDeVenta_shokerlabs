@@ -1,0 +1,155 @@
+<UserControl x:Class="POS.UI.Views.ConfiguracionNegocioView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Encabezado -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <Button Style="{StaticResource BotonFantasma}" Command="{Binding VolverCommand}" HorizontalAlignment="Left"
+                    Margin="-10,0,0,8"
+                    Visibility="{Binding EsPrimerArranque, Converter={StaticResource BooleanoAVisibilidadConverter}, ConverterParameter=Invertir}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Icono}" Text="&#xE72B;" Margin="0,0,8,0" FontSize="12"/>
+                    <TextBlock Text="Administrador"/>
+                </StackPanel>
+            </Button>
+            <TextBlock Text="Configuración del negocio" Style="{StaticResource TextoTitulo}"/>
+            <TextBlock Style="{StaticResource TextoSecundario}" Margin="0,4,0,0"
+                       Text="Estos datos aparecen en la pantalla principal y en los tickets. Puedes cambiarlos cuando quieras desde Administrador."/>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Datos del negocio -->
+                <Border Grid.Column="0" Style="{StaticResource Tarjeta}" VerticalAlignment="Top">
+                    <StackPanel>
+                        <TextBlock Text="Datos del negocio" Style="{StaticResource TextoSubtitulo}" Margin="0,0,0,16"/>
+
+                        <TextBlock Text="Nombre comercial *" Style="{StaticResource TextoEtiqueta}"/>
+                        <TextBox Text="{Binding Nombre, UpdateSourceTrigger=PropertyChanged}" Tag="Ej. Papelería La Esquina" Margin="0,0,0,14"/>
+
+                        <TextBlock Text="Dirección" Style="{StaticResource TextoEtiqueta}"/>
+                        <TextBox Text="{Binding Direccion, UpdateSourceTrigger=PropertyChanged}" Tag="Calle, número, colonia, ciudad" Margin="0,0,0,14"/>
+
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Teléfono" Style="{StaticResource TextoEtiqueta}"/>
+                                <TextBox Text="{Binding Telefono, UpdateSourceTrigger=PropertyChanged}" Tag="(555) 123 4567"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="RFC" Style="{StaticResource TextoEtiqueta}"/>
+                                <TextBox Text="{Binding Rfc, UpdateSourceTrigger=PropertyChanged}" Tag="XAXX010101000" CharacterCasing="Upper"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Sitio web o redes sociales" Style="{StaticResource TextoEtiqueta}"/>
+                        <TextBox Text="{Binding SitioWeb, UpdateSourceTrigger=PropertyChanged}" Tag="www.minegocio.com" Margin="0,0,0,14"/>
+
+                        <TextBlock Text="Mensaje al pie del ticket" Style="{StaticResource TextoEtiqueta}"/>
+                        <TextBox Text="{Binding MensajeTicket, UpdateSourceTrigger=PropertyChanged}" Tag="GRACIAS POR SU COMPRA"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Apariencia -->
+                <Border Grid.Column="2" Style="{StaticResource Tarjeta}" VerticalAlignment="Top">
+                    <StackPanel>
+                        <TextBlock Text="Apariencia" Style="{StaticResource TextoSubtitulo}" Margin="0,0,0,16"/>
+
+                        <TextBlock Text="Logo" Style="{StaticResource TextoEtiqueta}"/>
+                        <Border Background="{StaticResource BrushSuperficieAlt}" BorderBrush="{StaticResource BrushBorde}"
+                                BorderThickness="1" CornerRadius="8" Height="120" Margin="0,0,0,10">
+                            <Grid>
+                                <Image Source="{Binding Logo, Converter={StaticResource BytesAImagen}}" Margin="12" Stretch="Uniform"/>
+                                <TextBlock Text="Sin logo: se mostrarán las iniciales del negocio" Style="{StaticResource TextoSecundario}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" Margin="16"
+                                           Visibility="{Binding TieneLogo, Converter={StaticResource BooleanoAVisibilidadConverter}, ConverterParameter=Invertir}"/>
+                            </Grid>
+                        </Border>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                            <Button Content="Elegir imagen…" Command="{Binding SeleccionarLogoCommand}" Margin="0,0,8,0"/>
+                            <Button Content="Quitar" Command="{Binding QuitarLogoCommand}" Style="{StaticResource BotonFantasma}"
+                                    Visibility="{Binding TieneLogo, Converter={StaticResource BooleanoAVisibilidadConverter}}"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Color principal" Style="{StaticResource TextoEtiqueta}"/>
+                        <ItemsControl ItemsSource="{Binding ColoresSugeridos}" Margin="0,0,0,10">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Width="34" Height="34" MinHeight="34" Margin="0,0,8,8" Padding="0" ToolTip="{Binding}"
+                                            Style="{StaticResource BotonBase}"
+                                            Background="{Binding Converter={StaticResource HexABrush}}"
+                                            Command="{Binding DataContext.ElegirColorCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" CornerRadius="8" Height="40"
+                                    Background="{Binding ColorPrimario, Converter={StaticResource HexABrush}}"/>
+                            <TextBox Grid.Column="2" Text="{Binding ColorPrimario, UpdateSourceTrigger=PropertyChanged}"
+                                     Tag="#RRGGBB" CharacterCasing="Upper" MaxLength="7"/>
+                        </Grid>
+
+                        <TextBlock Text="Vista previa" Style="{StaticResource TextoEtiqueta}"/>
+                        <Border Background="{StaticResource BrushMenu}" CornerRadius="8" Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Nombre}" Foreground="{StaticResource BrushTextoInverso}" FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis" Margin="0,0,0,10"/>
+                                <Border CornerRadius="8" Height="40" Background="{Binding ColorPrimario, Converter={StaticResource HexABrush}}">
+                                    <TextBlock Text="Botón principal" Foreground="White" FontWeight="SemiBold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Pie: mensajes + guardar -->
+        <Grid Grid.Row="2" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                <Border Style="{StaticResource AvisoError}"
+                        Visibility="{Binding MensajeError, Converter={StaticResource TextoNoVacioAVisibilidad}}">
+                    <TextBlock Text="{Binding MensajeError}" Foreground="{StaticResource BrushPeligro}" TextWrapping="Wrap"/>
+                </Border>
+                <Border Style="{StaticResource AvisoExito}"
+                        Visibility="{Binding MensajeExito, Converter={StaticResource TextoNoVacioAVisibilidad}}">
+                    <TextBlock Text="{Binding MensajeExito}" Foreground="{StaticResource BrushExito}" TextWrapping="Wrap"/>
+                </Border>
+            </StackPanel>
+            <Button Grid.Column="1" Style="{StaticResource BotonPrimario}" Command="{Binding GuardarCommand}"
+                    Content="Guardar configuración" MinWidth="200" Height="46"/>
+        </Grid>
+    </Grid>
+</UserControl>

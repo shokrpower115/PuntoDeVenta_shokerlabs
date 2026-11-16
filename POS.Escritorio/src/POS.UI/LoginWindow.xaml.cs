@@ -13,6 +13,11 @@ namespace POS.UI
             _viewModel = viewModel;
             DataContext = _viewModel;
 
+#if DEBUG
+            // Las credenciales de prueba nunca deben verse en la versión que se entrega al cliente.
+            TxtAyudaDesarrollo.Visibility = Visibility.Visible;
+#endif
+
             // Cuando el login es exitoso, cerramos esta ventana con "resultado positivo".
             // App.xaml.cs está esperando esto para abrir la ventana principal.
             _viewModel.LoginExitoso += () =>

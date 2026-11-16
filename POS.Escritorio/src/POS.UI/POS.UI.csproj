@@ -8,19 +8,15 @@
     <Nullable>enable</Nullable>
     <RootNamespace>POS.UI</RootNamespace>
     <AssemblyName>PuntoDeVenta</AssemblyName>
-  </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Assets\Logo_Empresa.jpeg" />
-  </ItemGroup>
+    <!-- Datos del producto (aparecen en Propiedades del .exe). Ver docs/instalacion.md. -->
+    <Product>Punto de Venta</Product>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\POS.Core\POS.Core.csproj" />
     <ProjectReference Include="..\POS.Data\POS.Data.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Assets\Logo_Empresa.jpeg" />
   </ItemGroup>
 
   <ItemGroup>

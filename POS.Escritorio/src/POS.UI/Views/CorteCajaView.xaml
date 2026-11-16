@@ -1,28 +1,61 @@
 <UserControl x:Class="POS.UI.Views.CorteCajaView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid>
-        <StackPanel MaxWidth="380" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="Corte de Caja" FontSize="22" FontWeight="Bold"
-                       HorizontalAlignment="Center" Margin="0,0,0,25"/>
+    <!-- Conteo ciego (RN-CORTE-03): el cajero captura lo que contó SIN ver el efectivo esperado;
+         la diferencia aparece hasta el ticket del corte. -->
+    <StackPanel>
+        <TextBlock Text="Corte de caja" Style="{StaticResource TextoTitulo}"/>
+        <TextBlock Text="Cuenta todo el efectivo del cajón y captura el total. Al confirmar se cierra el turno y se imprime el corte."
+                   Style="{StaticResource TextoSecundario}" Margin="0,4,0,20"/>
 
-            <TextBlock Text="Efectivo en caja (conteo físico):" Margin="0,0,0,5"/>
-            <TextBox Text="{Binding EfectivoFinal, UpdateSourceTrigger=PropertyChanged}"
-                     FontSize="16" Padding="6" Margin="0,0,0,20"/>
+        <!-- Datos del turno -->
+        <Border Background="{StaticResource BrushSuperficieAlt}" BorderBrush="{StaticResource BrushBorde}" BorderThickness="1"
+                CornerRadius="10" Padding="16" Margin="0,0,0,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Abierto por" Style="{StaticResource TextoSecundario}"/>
+                    <TextBlock Text="{Binding TurnoActual.Usuario.NombreCompleto, FallbackValue='—'}" FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Desde" Style="{StaticResource TextoSecundario}"/>
+                    <TextBlock Text="{Binding TurnoActual.FechaApertura, StringFormat='dd/MM HH:mm', FallbackValue='—'}" FontWeight="SemiBold"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Fondo inicial" Style="{StaticResource TextoSecundario}"/>
+                    <TextBlock Text="{Binding TurnoActual.EfectivoInicial, StringFormat=C, FallbackValue='—'}" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Grid>
+        </Border>
 
-            <TextBlock Text="Confirma tu usuario:" Margin="0,0,0,5"/>
-            <TextBox Text="{Binding NombreUsuarioConfirmacion, UpdateSourceTrigger=PropertyChanged}"
-                     Padding="6" Margin="0,0,0,15"/>
+        <TextBlock Text="Efectivo contado en caja" Style="{StaticResource TextoEtiqueta}"/>
+        <TextBox Text="{Binding EfectivoFinal, UpdateSourceTrigger=PropertyChanged}"
+                 Style="{StaticResource CampoMonto}" Margin="0,0,0,20"/>
 
-            <TextBlock Text="Confirma tu contraseña:" Margin="0,0,0,5"/>
-            <PasswordBox x:Name="PasswordBox" Padding="6" Margin="0,0,0,15"
-                         PasswordChanged="PasswordBox_PasswordChanged"/>
+        <Border Background="{StaticResource BrushSuperficieAlt}" BorderBrush="{StaticResource BrushBorde}" BorderThickness="1"
+                CornerRadius="10" Padding="16" Margin="0,0,0,16">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <TextBlock Style="{StaticResource Icono}" Text="&#xE72E;" Foreground="{StaticResource BrushTextoSecundario}" Margin="0,0,8,0"/>
+                    <TextBlock Text="Autoriza el corte" FontWeight="SemiBold"/>
+                </StackPanel>
+                <TextBlock Text="Quien abrió el turno o un administrador." Style="{StaticResource TextoSecundario}" Margin="0,0,0,12"/>
+                <TextBox Text="{Binding NombreUsuarioConfirmacion, UpdateSourceTrigger=PropertyChanged}" Tag="Usuario" Margin="0,0,0,10"/>
+                <PasswordBox x:Name="PasswordBox" PasswordChanged="PasswordBox_PasswordChanged"/>
+            </StackPanel>
+        </Border>
 
-            <TextBlock Text="{Binding MensajeError}" Foreground="{StaticResource BrushRojoPrimario}"
-                       TextWrapping="Wrap" Margin="0,0,0,15" HorizontalAlignment="Center"/>
+        <Border Style="{StaticResource AvisoError}" Margin="0,0,0,16"
+                Visibility="{Binding MensajeError, Converter={StaticResource TextoNoVacioAVisibilidad}}">
+            <TextBlock Text="{Binding MensajeError}" Foreground="{StaticResource BrushPeligro}" TextWrapping="Wrap"/>
+        </Border>
 
-            <Button Content="Realizar corte" Command="{Binding RealizarCorteCommand}"
-                    Style="{StaticResource BotonAccento}" Height="48" FontSize="16"/>
-        </StackPanel>
-    </Grid>
+        <Button Content="Realizar corte y cerrar turno" Command="{Binding RealizarCorteCommand}"
+                Style="{StaticResource BotonPrimario}" Height="50" FontSize="16"/>
+    </StackPanel>
 </UserControl>

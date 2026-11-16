@@ -4,6 +4,7 @@ using POS.Core.Services;
 using POS.Data;
 using POS.Data.Impresion;
 using POS.Data.Sqlite;
+using POS.UI.Apariencia;
 using POS.UI.ViewModels;
 using Serilog;
 using System;
@@ -45,14 +46,26 @@ namespace POS.UI
                 IAuthService authService = new AuthServiceSqlite();
                 IImpresoraTicketService impresoraTicketService = new ImpresoraTicketPdfService();
                 IMetodoPagoService metodoPagoService = new MetodoPagoServiceSqlite();
-                var datosNegocio = new DatosNegocio
+                IConfiguracionNegocioService configuracionService = new ConfiguracionNegocioServiceSqlite();
+
+                // Los datos del negocio viven en la base de datos (nunca en el código), así el
+                // mismo instalador sirve para cualquier cliente. En el primer arranque se piden.
+                var datosNegocio = await configuracionService.ObtenerAsync();
+                if (datosNegocio == null)
                 {
-                    Nombre = "MONTESORIO",
-                    Direccion = "DIRECCION 123 COL. COLONIA",
-                    Telefono = "(555) 123 4567",
-                    Rfc = "RFC0031282AB1",
-                    SitioWeb = "www.ColegioMontesori.com"
-                };
+                    datosNegocio = new DatosNegocio();
+                    Marca.Aplicar(datosNegocio);
+
+                    var asistente = new AsistenteConfiguracionWindow(
+                        new ConfiguracionNegocioViewModel(configuracionService, datosNegocio, esPrimerArranque: true));
+                    if (asistente.ShowDialog() != true)
+                    {
+                        Shutdown();
+                        return;
+                    }
+                    Log.Information("Configuración inicial del negocio guardada: {Nombre}", datosNegocio.Nombre);
+                }
+                Marca.Aplicar(datosNegocio);
 
                 bool continuarSesiones = true;
                 while (continuarSesiones)
@@ -97,7 +110,7 @@ namespace POS.UI
                     var mainViewModel = new MainViewModel(
                         productoService, ventaService, corteCajaService,
                         impresoraTicketService, metodoPagoService, authService,
-                        datosNegocio, usuario);
+                        configuracionService, datosNegocio, usuario);
 
                     var mainWindow = new MainWindow(mainViewModel);
                     MainWindow = mainWindow;

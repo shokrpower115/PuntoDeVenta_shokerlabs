@@ -1,28 +1,60 @@
 <Window x:Class="POS.UI.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Iniciar sesión" Height="320" Width="380"
-        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
-    <StackPanel Margin="30" VerticalAlignment="Center" Background="{StaticResource BrushFondo}">
-        <TextBlock Text="Punto de Venta" FontSize="22" FontWeight="Bold" Foreground="{StaticResource BrushAzulPrimario}"
-                   HorizontalAlignment="Center" Margin="0,0,0,20"/>
+        Title="Iniciar sesión" Height="480" Width="820"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Style="{StaticResource VentanaBase}" Background="{StaticResource BrushSuperficie}"
+        FocusManager.FocusedElement="{Binding ElementName=TxtUsuario}">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="6*"/>
+        </Grid.ColumnDefinitions>
 
-        <TextBlock Text="Usuario:" Margin="0,0,0,5"/>
-        <TextBox Text="{Binding NombreUsuario, UpdateSourceTrigger=PropertyChanged}"
-                 Padding="6" Margin="0,0,0,15"/>
+        <!-- Panel de marca -->
+        <Grid Grid.Column="0" Background="{DynamicResource BrushPrimario}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="32">
+                <Grid Width="120" Height="120" HorizontalAlignment="Center" Margin="0,0,0,20">
+                    <Border CornerRadius="24" Background="#33FFFFFF" Visibility="{DynamicResource VisibilidadIniciales}">
+                        <TextBlock Text="{DynamicResource InicialesNegocio}" Foreground="{DynamicResource BrushPrimarioTexto}"
+                                   FontSize="42" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border CornerRadius="24" Background="White" Visibility="{DynamicResource VisibilidadLogo}">
+                        <Image Source="{DynamicResource LogoNegocio}" Margin="12" Stretch="Uniform"/>
+                    </Border>
+                </Grid>
+                <TextBlock Text="{DynamicResource NombreNegocio}" Foreground="{DynamicResource BrushPrimarioTexto}"
+                           FontSize="22" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+                <TextBlock Text="Punto de venta" Foreground="{DynamicResource BrushPrimarioTexto}" Opacity="0.75"
+                           FontSize="14" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+            </StackPanel>
+        </Grid>
 
-        <TextBlock Text="Contraseña:" Margin="0,0,0,5"/>
-        <PasswordBox x:Name="PasswordBox" Padding="6" Margin="0,0,0,15"
-                     PasswordChanged="PasswordBox_PasswordChanged"/>
+        <!-- Formulario -->
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="56,0">
+            <TextBlock Text="Iniciar sesión" Style="{StaticResource TextoTitulo}"/>
+            <TextBlock Text="Escribe tu usuario y contraseña para abrir la caja." Style="{StaticResource TextoSecundario}"
+                       Margin="0,6,0,28"/>
 
-        <Button Content="Iniciar sesión" Command="{Binding IniciarSesionCommand}" Style="{StaticResource BotonAccento}"
-                Height="40"/>
+            <TextBlock Text="Usuario" Style="{StaticResource TextoEtiqueta}"/>
+            <TextBox x:Name="TxtUsuario" Text="{Binding NombreUsuario, UpdateSourceTrigger=PropertyChanged}"
+                     Tag="Tu nombre de usuario" Margin="0,0,0,16"/>
 
-        <TextBlock Text="{Binding MensajeError}" Foreground="{StaticResource BrushRojoPrimario}" Margin="0,15,0,0"
-                   TextWrapping="Wrap" HorizontalAlignment="Center"/>
+            <TextBlock Text="Contraseña" Style="{StaticResource TextoEtiqueta}"/>
+            <PasswordBox x:Name="PasswordBox" Margin="0,0,0,24" PasswordChanged="PasswordBox_PasswordChanged"/>
 
-        <TextBlock Text="Prueba: centro / norte / sur — contraseña: 1234"
-                   FontSize="11" Foreground="Gray" Margin="0,20,0,0"
-                   HorizontalAlignment="Center" TextWrapping="Wrap"/>
-    </StackPanel>
+            <Button Content="Entrar" Command="{Binding IniciarSesionCommand}" Style="{StaticResource BotonPrimario}"
+                    Height="46" IsDefault="True"/>
+
+            <Border Style="{StaticResource AvisoError}" Margin="0,16,0,0"
+                    Visibility="{Binding MensajeError, Converter={StaticResource TextoNoVacioAVisibilidad}}">
+                <TextBlock Text="{Binding MensajeError}" Foreground="{StaticResource BrushPeligro}" TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Solo en compilaciones de desarrollo (ver LoginWindow.xaml.cs). -->
+            <TextBlock x:Name="TxtAyudaDesarrollo" Text="Desarrollo: centro / norte / sur — contraseña 1234"
+                       Style="{StaticResource TextoSecundario}" Foreground="{StaticResource BrushTextoTenue}"
+                       Margin="0,20,0,0" Visibility="Collapsed"/>
+        </StackPanel>
+    </Grid>
 </Window>

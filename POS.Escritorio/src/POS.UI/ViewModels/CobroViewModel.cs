@@ -60,12 +60,27 @@ namespace POS.UI.ViewModels
         public RelayCommand ConfirmarCommand { get; }
         public RelayCommand CancelarCommand { get; }
 
+        // Atajos de efectivo: el monto exacto y los billetes comunes que alcanzan a cubrir el total.
+        public List<decimal> MontosRapidos { get; }
+        public RelayCommand<decimal> MontoRapidoCommand { get; }
+
+        private static readonly decimal[] Denominaciones = { 20m, 50m, 100m, 200m, 500m, 1000m };
+
         public CobroViewModel(decimal totalVenta, List<MetodoPago> metodosPago)
         {
             TotalVenta = totalVenta;
             MetodosPago = new ObservableCollection<MetodoPago>(metodosPago);
             MetodoPagoSeleccionado = MetodosPago.FirstOrDefault();
             MontoPagado = totalVenta;
+
+            MontosRapidos = new List<decimal> { totalVenta };
+            foreach (var billete in Denominaciones)
+            {
+                var monto = Math.Ceiling(totalVenta / billete) * billete;
+                if (monto > totalVenta && !MontosRapidos.Contains(monto) && MontosRapidos.Count < 5)
+                    MontosRapidos.Add(monto);
+            }
+            MontoRapidoCommand = new RelayCommand<decimal>(monto => MontoPagado = monto);
 
             ConfirmarCommand = new RelayCommand(Confirmar);
             CancelarCommand = new RelayCommand(() => CancelarSolicitado?.Invoke());

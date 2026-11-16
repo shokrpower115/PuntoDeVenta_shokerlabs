@@ -1,26 +1,27 @@
 <Window x:Class="POS.UI.FondoInicialWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Fondo inicial" Width="420" Height="200"
-        WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize"
-        Background="{StaticResource BrushFondo}">
-    <Grid Margin="12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+        Title="Abrir turno" Width="460" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Style="{StaticResource VentanaBase}"
+        FocusManager.FocusedElement="{Binding ElementName=TxtMonto}">
+    <StackPanel Margin="28">
+        <Border Width="52" Height="52" CornerRadius="26" Background="{DynamicResource BrushPrimarioSuave}"
+                HorizontalAlignment="Left" Margin="0,0,0,16">
+            <TextBlock Style="{StaticResource Icono}" Text="&#xE8EF;" FontSize="22" Foreground="{DynamicResource BrushPrimario}"
+                       HorizontalAlignment="Center"/>
+        </Border>
+        <TextBlock Text="Abrir turno" Style="{StaticResource TextoTitulo}"/>
+        <TextBlock Text="Cuenta el efectivo con el que inicia la caja (el fondo para dar cambio)." Style="{StaticResource TextoSecundario}"
+                   Margin="0,4,0,22"/>
 
-        <TextBlock Grid.Row="0" Text="Ingresa el fondo inicial (efectivo):" FontWeight="Bold" Margin="0,0,0,8"/>
+        <TextBlock Text="Fondo inicial en efectivo" Style="{StaticResource TextoEtiqueta}"/>
+        <TextBox x:Name="TxtMonto" Style="{StaticResource CampoMonto}" Tag="0.00" Margin="0,0,0,24"/>
 
-        <TextBox x:Name="TxtMonto" Grid.Row="1" FontSize="16"
-                 VerticalContentAlignment="Center" Padding="6"
-                 HorizontalAlignment="Stretch" />
-
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Cancelar" Width="100" Margin="0,0,8,0" Click="Cancelar_Click"/>
-            <Button Content="Abrir turno" Width="120" Click="AbrirTurno_Click" IsDefault="True"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancelar" Click="Cancelar_Click" MinWidth="110" Height="44" Margin="0,0,10,0"/>
+            <Button Content="Abrir turno" Click="AbrirTurno_Click" IsDefault="True" Style="{StaticResource BotonPrimario}"
+                    MinWidth="150" Height="44"/>
         </StackPanel>
-    </Grid>
+    </StackPanel>
 </Window>

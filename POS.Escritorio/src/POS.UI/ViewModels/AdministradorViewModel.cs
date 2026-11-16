@@ -1,4 +1,5 @@
-﻿using POS.Core.Services;
+﻿using POS.Core.Models;
+using POS.Core.Services;
 
 namespace POS.UI.ViewModels
 {
@@ -6,6 +7,8 @@ namespace POS.UI.ViewModels
     {
         private readonly IProductoService _productoService;
         private readonly IAuthService _authService;
+        private readonly IConfiguracionNegocioService _configuracionService;
+        private readonly DatosNegocio _datosNegocio;
 
         private ViewModelBase _pantallaActual = null!;
         public ViewModelBase PantallaActual
@@ -14,15 +17,15 @@ namespace POS.UI.ViewModels
             set => SetProperty(ref _pantallaActual, value);
         }
 
-        public AdministradorViewModel(IProductoService productoService, IAuthService authService)
+        public AdministradorViewModel(IProductoService productoService, IAuthService authService,
+            IConfiguracionNegocioService configuracionService, DatosNegocio datosNegocio)
         {
             _productoService = productoService;
             _authService = authService;
+            _configuracionService = configuracionService;
+            _datosNegocio = datosNegocio;
 
-            var irAProductos = new RelayCommand(MostrarProductos);
-            var irAUsuarios = new RelayCommand(MostrarUsuarios);
-
-            PantallaActual = new AdministradorMenuViewModel(irAProductos, irAUsuarios);
+            MostrarMenu();
         }
 
         private void MostrarProductos()
@@ -39,11 +42,19 @@ namespace POS.UI.ViewModels
             PantallaActual = vm;
         }
 
+        private void MostrarConfiguracion()
+        {
+            var vm = new ConfiguracionNegocioViewModel(_configuracionService, _datosNegocio, esPrimerArranque: false);
+            vm.VolverSolicitado += MostrarMenu;
+            PantallaActual = vm;
+        }
+
         private void MostrarMenu()
         {
-            var irAProductos = new RelayCommand(MostrarProductos);
-            var irAUsuarios = new RelayCommand(MostrarUsuarios);
-            PantallaActual = new AdministradorMenuViewModel(irAProductos, irAUsuarios);
+            PantallaActual = new AdministradorMenuViewModel(
+                new RelayCommand(MostrarProductos),
+                new RelayCommand(MostrarUsuarios),
+                new RelayCommand(MostrarConfiguracion));
         }
     }
 }

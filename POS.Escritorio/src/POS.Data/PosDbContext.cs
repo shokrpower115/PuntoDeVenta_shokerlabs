@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using POS.Core.Models;
 
 namespace POS.Data
@@ -15,6 +15,7 @@ namespace POS.Data
         public DbSet<MetodoPago> MetodosPago => Set<MetodoPago>();
         public DbSet<CategoriaMovimientoCaja> CategoriasMovimientoCaja => Set<CategoriaMovimientoCaja>();
         public DbSet<MovimientoCaja> MovimientosCaja => Set<MovimientoCaja>();
+        public DbSet<DatosNegocio> DatosNegocio => Set<DatosNegocio>();
 
         private readonly string _rutaBaseDatos;
 
@@ -34,6 +35,10 @@ namespace POS.Data
             // por sucursal (no puede repetirse ProductoId+SucursalId).
             modelBuilder.Entity<ProductoSucursal>()
                 .HasKey(ps => new { ps.ProductoId, ps.SucursalId });
+
+            modelBuilder.Entity<DatosNegocio>()
+                .ToTable("DatosNegocio")
+                .Property(d => d.Id).ValueGeneratedNever();
 
             modelBuilder.Entity<Venta>()
                 .HasOne(v => v.CorteCaja)

@@ -1,13 +1,53 @@
 ﻿<UserControl x:Class="POS.UI.Views.AdministradorMenuView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <!-- Mosaico de sección: tarjeta clicable con ícono, título y descripción. -->
+        <Style x:Key="MosaicoSeccion" TargetType="Button" BasedOn="{StaticResource BotonSecundario}">
+            <Setter Property="Width" Value="280"/>
+            <Setter Property="Height" Value="156"/>
+            <Setter Property="Margin" Value="0,0,16,16"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorde}"/>
+        </Style>
+    </UserControl.Resources>
+
     <StackPanel>
-        <TextBlock Text="Administrador" FontSize="22" FontWeight="Bold" Margin="0,0,0,20"/>
+        <TextBlock Text="Administrador" Style="{StaticResource TextoTitulo}"/>
+        <TextBlock Text="Catálogo, personal y datos del negocio." Style="{StaticResource TextoSecundario}" Margin="0,4,0,24"/>
 
-        <Button Content="Productos" Command="{Binding IrAProductosCommand}" Style="{StaticResource BotonPrimario}"
-                Height="60" Width="250" HorizontalAlignment="Left" Margin="0,0,0,10" FontSize="16"/>
+        <WrapPanel>
+            <Button Style="{StaticResource MosaicoSeccion}" Command="{Binding IrAProductosCommand}">
+                <StackPanel>
+                    <Border Width="44" Height="44" CornerRadius="10" Background="{DynamicResource BrushPrimarioSuave}" HorizontalAlignment="Left">
+                        <TextBlock Style="{StaticResource Icono}" Text="&#xE7B8;" FontSize="20" Foreground="{DynamicResource BrushPrimario}" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Productos" Style="{StaticResource TextoSubtitulo}" Margin="0,14,0,4"/>
+                    <TextBlock Text="Alta, precios y existencias por sucursal." Style="{StaticResource TextoSecundario}" FontWeight="Normal"/>
+                </StackPanel>
+            </Button>
 
-        <Button Content="Usuarios" Command="{Binding IrAUsuariosCommand}" Style="{StaticResource BotonPrimario}"
-                Height="60" Width="250" HorizontalAlignment="Left" FontSize="16"/>
+            <Button Style="{StaticResource MosaicoSeccion}" Command="{Binding IrAUsuariosCommand}">
+                <StackPanel>
+                    <Border Width="44" Height="44" CornerRadius="10" Background="{DynamicResource BrushPrimarioSuave}" HorizontalAlignment="Left">
+                        <TextBlock Style="{StaticResource Icono}" Text="&#xE716;" FontSize="20" Foreground="{DynamicResource BrushPrimario}" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Usuarios" Style="{StaticResource TextoSubtitulo}" Margin="0,14,0,4"/>
+                    <TextBlock Text="Cajeros y administradores." Style="{StaticResource TextoSecundario}" FontWeight="Normal"/>
+                </StackPanel>
+            </Button>
+
+            <Button Style="{StaticResource MosaicoSeccion}" Command="{Binding IrAConfiguracionCommand}">
+                <StackPanel>
+                    <Border Width="44" Height="44" CornerRadius="10" Background="{DynamicResource BrushPrimarioSuave}" HorizontalAlignment="Left">
+                        <TextBlock Style="{StaticResource Icono}" Text="&#xE790;" FontSize="20" Foreground="{DynamicResource BrushPrimario}" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Negocio" Style="{StaticResource TextoSubtitulo}" Margin="0,14,0,4"/>
+                    <TextBlock Text="Nombre, datos del ticket, logo y color." Style="{StaticResource TextoSecundario}" FontWeight="Normal"/>
+                </StackPanel>
+            </Button>
+        </WrapPanel>
     </StackPanel>
 </UserControl>
